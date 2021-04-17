@@ -1,0 +1,204 @@
+/*Author: Thomas Kubler. Employing examples from w3schools.com ***/
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    font-family: Tahoma;
+    font-size: 0.9rem;
+}
+
+:root {
+    --hue-normal: 200;
+}
+
+body {
+    --hue: var(--hue-normal);
+    padding: 10px;
+    margin: 10px;
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    background-color: hsl(var(--hue), 100%, 20%);
+}
+/******************************************************* CONTAINER ******************************************/
+.container{
+    width:1500px;
+    height:8000px;
+    max-width: 90%;
+    background-color: white;
+    border-radius :5px;
+    padding: 10px 10px;
+    box-shadow: 0 0 10px 2px;
+}
+
+.ctextentry{
+    width: 70%;
+}
+
+/******************************************************* TOOLTIPS ******************************************/
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 180px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    top: -5px;
+    right: 110%;
+    opacity: 0;
+    transition: opacity 0.7s;
+    font-weight: normal;
+}
+/* Tooltip arrow on right side */
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 13px;
+    left: 100%;
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent transparent #555;
+}
+.tooltip:hover .tooltiptext{
+    visibility: visible;
+    opacity: 1;
+}
+
+/*********************************************** Configuration Bar ******************************************************/
+.config-columns{
+    column-count: 5;
+    column-rule-style: solid;
+    column-rule-width: 1px;
+    column-rule-color: black;
+}
+.config-column-cyber{
+    column-count: 2;
+}
+.config-bar {
+    display: block;
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 10px;
+    /*cursor: pointer;*/
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+.config-bar input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+  .radiomark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 17px;
+    width: 17px;
+    background-color: #eee;
+    border-radius: 50%;
+  }
+  
+  /* On mouse-over, add a grey background color */
+  .config-bar:hover input ~ .radiomark {
+    /*background-color: #ccc;*/
+  }
+  
+  /* When the radio button is checked, add a blue background */
+  .config-bar input:checked ~ .radiomark {
+    background-color: #2196F3;
+  }
+  
+  /* Create the indicator (the dot/circle - hidden when not checked) */
+  .radiomark:after {
+    content: "";
+    position: absolute;
+    display: none;
+  }
+  
+  /* Show the indicator (dot/circle) when checked */
+  .config-bar input:checked ~ .radiomark:after {
+    display: block;
+  }
+  
+  /* Style the indicator (dot/circle) */
+  .config-bar .radiomark:after {
+    top: 4px;
+    left: 4px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: white;
+  }
+/*********************************************** FlightTabs Stuff  **************************************************************************/
+
+.FlightTabs {
+    float: left;
+    border: none;
+    background-color: #eee;
+    height: 700px;
+    width: 10%;
+    padding-top: 10px;
+}
+
+.FlightTabs button{
+    display: block;
+    background-color: inherit;
+    color: black;
+    width: 100%;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    text-align: left;
+    padding: 10px 10px;
+}
+
+.FlightTabs button:hover {
+    background-color: #ddd;
+}
+
+.FlightTabs button.active{
+    background-color: #aaa;
+}
+.tabcontent {
+    float: left;
+    padding: 0px 12px;
+    border: 1px solid #ccc;
+    width: 70%;
+    border-left: none;
+    height: 300px;
+  }
+
+/*********************************************** Buttons Go/Halt/Save  **************************************************************************/
+.btn{
+    --hue: var(--hue-neutral);
+    border: 3px solid hsl(var(--hue), 100%, 30%);
+    background-color: hsl(var(--hue), 100%, 35%);
+    border-radius: 5px;
+    padding: 5px 10px;
+    color: white;
+    outline: none;
+}
+
+.btn:hover{
+    border-color: black;
+}
+
+.btn:active{
+    background-color: hsl(var(--hue), 25%, 25%);
+}
+
+.load-btn, .start-btn, .halt-btn{
+    padding: 5px 5px;
+}

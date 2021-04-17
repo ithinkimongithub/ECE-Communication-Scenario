@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<!--Author: Thomas Kubler. using examples from w3schools.com-->
+
+<!--primary Excel features provided by:
+    
+Copyright (C) 2012-present   SheetJS LLC
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <link href="styles.css" rel="stylesheet">
+    <script defer src="script.js"></script>
+    <script lang="javascript" src="xlsx.full.min.js"></script>
+    <title>JavaRadar</title>
+
+    <!--these are only necesseary if using firebase SDK features. otherwise, these can be removed:-->
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="/__/firebase/8.4.1/firebase-app.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+        https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="/__/firebase/8.4.1/firebase-analytics.js"></script>
+
+    <!-- Initialize Firebase -->
+    <script src="/__/firebase/init.js"></script>
+    <!--remove up through here if not using firebase-->
+
+</head>
+<body onload="InitGame()">
+    <div class="container">
+        <h1>ECE 315 Project 3: Electromagnetic Warfare</h1>
+        
+        <hr />
+        <p><b>Directions:</b><br>
+            1. Download <a href="template.xlsx">template.xlsx</a> and then "Save-As"(F12 on Windows) to make your own file, naming it "M1-Group1.xlsx" or similar.<br> 
+            2. Complete all the tables, avoiding any addition or subtraction of rows or columns.<br>
+            3. Load your file into this tool to visualize your submission and build your plan, retesting it here.<br>
+            4. Submit your file to your instructor.<br><br>
+            Here is an <a href="example-incorrect.xlsx">example.xlsx</a> that shows how to fill out the tables. It is not representative of anything correct.<br>
+            This tool will visualize whatever you have entered into the tables whether it is correct or not.<br>
+            This tool will not upload your file to a server and it will not provide a grade.<br>
+        </p>
+
+        <hr />
+        <p><b>Loading:</b></p>
+        <div>Load your *.xlsx file into this program using the Choose File button. Note: You must refresh this page if reloading a file of the same name.</div>
+        <!--<input type="file" id="one-file-input" onchange="LoadOneFile()" accept=".csv"><input hidden="true" class="btn" type="submit" value="Submit">-->
+        <input type="file" name="xlfile" id="xlf" onchange="LoadXLSXFile()" accept=".xlsx">
+        <br><br>
+        <button id="show-data-btn" onclick="ShowData()">Show File Data</button>
+        <table id="data-table">
+            <tr><td>File data is hidden or empty</td></tr>
+        </table>
+        <hr />
+        <p><b>Simulation:</b></p>
+        <div>Watch the simulation and see if what you've planned can work.</div>
+        <div class="control-bar">
+            <button id="start-btn" class="start-btn btn" onclick="StartSimulation(0.1)">Start</button>
+            <button id="halt-btn" class="halt-btn btn" onclick="HaltSimulation()">Stop</button>
+            <button id="start-fast-btn" class="start-btn btn" title="Go Fast" onclick="StartSimulation(1.0)">Hammer Time</button>
+        </div>
+        <hr />
+        <p>The vertical tab to the left of the map is selectable and can change what is shown:</p>
+        <div class="FlightTabs">
+            <div>Flight Plans:</div>
+            <button id="TabConv"    class="tablinks active" onclick="openTab(event, 'TabConv')">Conventional</button>
+            <button id="TabMix"     class="tablinks"        onclick="openTab(event, 'TabMix')">Mixed</button>
+            <button id="TabStealth" class="tablinks"        onclick="openTab(event, 'TabStealth')">Stealth</button>
+            <div>Display Options:</div>
+            <button id="Distances"  class="toggler"         onclick="toggleDist()">Distances</button>
+            <button id="MaxLOS"     class="toggler"         onclick="toggleLOS()">Max R_LOS</button>
+            <button id="VisLinks"   class="toggler"         onclick="toggleLinks()">Comm Links</button>
+            <button id="MaxRadar"   class="toggler"         onclick="toggleRadar()">Max Detection</button>
+            <button id="MinJam"     class="toggler"         onclick="toggleJam()">Burn-Through</button>
+            <button id="TogFPlan"   class="toggler"         onclick="toggleFPlan()">Flight Plan</button>
+        </div>
+        <div class="CanvasPlacement">
+            <canvas class="flight-canvas" id="TheCanvas" width="730" height="700" style="border:1px solid black"></canvas>
+        </div>
+        <hr />
+        <!--Insruction Section of page-->
+        <div id = "instr">
+            <p>In Chrome, hit Ctrl-Shift-J to see the console tab for any messages. Save the output by right clicking on the console text and selecting "Save As"</p>
+            <p><b>Instructor Buttons:</b> Non-functional without instructor's library file.</p>
+            <button id="template-btn" onclick="GenerateOutputFile(false)">Create Template</button><br><br>
+            <button id="template-btn" onclick="GenerateOutputFile(true)">Create Answer Key</button><br><br>
+            <div>Batch Grading: "Choose File" will open a standard Open File window. Select any number of files in the same directory, and this program will immediately get to work. Look for grades in the console log.</div>
+            <input type="file" id="batch-file-input" onchange="BatchGradeFiles()" accept=".xlsx" multiple><br><br>
+            <button id="show-data-btn" onclick="SpeedUp()">Speed Up</button><br><br>
+            <button id="template-btn" onclick="SaveGradesToFile()">Save Grades in xlsx</button><br><br>
+            <hr />
+        </div>
+        <div style="font-size:10px;">Author: Thomas Kubler
+        <a style="font-size:10px;" href="mailto:thomas.kubler@gmail.com">thomas.kubler@gmail.com</a>
+        <a style="font-size:10px;" href="mailto:thomas.kubler@usafa.edu">thomas.kubler@usafa.edu</a>
+        Programmed in Javascript</div>
+        <img id="myiconN" width="30" height="30" src="airplaneN.gif" hidden>
+        <img id="myiconS" width="30" height="30" src="airplaneS.gif" hidden>
+        <button id="instr-btn" class="start-btn btn" onclick="ToggleInstructor()">Instructor Mode</button>
+    </div>
+</body>
+</html>
