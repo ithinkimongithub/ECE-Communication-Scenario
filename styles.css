@@ -141,9 +141,9 @@ body {
     border-radius: 50%;
     background: white;
   }
-/*********************************************** FlightTabs Stuff  **************************************************************************/
+/*********************************************** Vertical Tabs Stuff  **************************************************************************/
 
-.FlightTabs {
+.VertTabs {
     float: left;
     border: none;
     background-color: #eee;
@@ -152,7 +152,7 @@ body {
     padding-top: 10px;
 }
 
-.FlightTabs button{
+.VertTabs button{
     display: block;
     background-color: inherit;
     color: black;
@@ -164,11 +164,11 @@ body {
     padding: 10px 10px;
 }
 
-.FlightTabs button:hover {
+.VertTabs button:hover {
     background-color: #ddd;
 }
 
-.FlightTabs button.active{
+.VertTabs button.active{
     background-color: #aaa;
 }
 .tabcontent {

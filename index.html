@@ -1,80 +1,139 @@
 ﻿<!DOCTYPE html>
 <!--Author: Thomas Kubler. using examples from w3schools.com-->
-
-<!--primary Excel features provided by:
-    
-Copyright (C) 2012-present   SheetJS LLC
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
--->
-
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
-    <link href="styles.css" rel="stylesheet">
+    
     <script defer src="script.js"></script>
-    <script lang="javascript" src="xlsx.full.min.js"></script>
-    <title>JavaRadar</title>
+    <title>ECE Communcation Scenario</title>
 
-    <!--these are only necesseary if using firebase SDK features. otherwise, these can be removed:-->
-    <!-- The core Firebase JS SDK is always required and must be listed first -->
-    <script src="/__/firebase/8.4.1/firebase-app.js"></script>
+    <!--<link href="styles.css" rel="stylesheet"> -->
 
-    <!-- TODO: Add SDKs for Firebase products that you want to use
-        https://firebase.google.com/docs/web/setup#available-libraries -->
-    <script src="/__/firebase/8.4.1/firebase-analytics.js"></script>
-
-    <!-- Initialize Firebase -->
-    <script src="/__/firebase/init.js"></script>
-    <!--remove up through here if not using firebase-->
-
+    <!-- MathJax for equations means the local styles has to be removed. Apache 2.0 license -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
 </head>
-<body onload="InitGame()">
+<body onload="InitPage()">
+    
     <div class="container">
-        <h1>ECE 315 Project 3: Electromagnetic Warfare</h1>
-        
+        <h1>ECE 315: Communication Scenario</h1>
+        <p>This is an interactive page that will carry all entries forward through a single scenario.</p>
         <hr />
-        <p><b>Directions:</b><br>
-            1. Download <a href="template.xlsx">template.xlsx</a> and then "Save-As"(F12 on Windows) to make your own file, naming it "M1-Group1.xlsx" or similar.<br> 
-            2. Complete all the tables, avoiding any addition or subtraction of rows or columns.<br>
-            3. Load your file into this tool to visualize your submission and build your plan, retesting it here.<br>
-            4. Submit your file to your instructor.<br><br>
-            Here is an <a href="example-incorrect.xlsx">example.xlsx</a> that shows how to fill out the tables. It is not representative of anything correct.<br>
-            This tool will visualize whatever you have entered into the tables whether it is correct or not.<br>
-            This tool will not upload your file to a server and it will not provide a grade.<br>
+        <p>The wavelength of a radio transmission can be computed using the speed of light \(c\) and the radio frequency \(f\):
+            \[\lambda={c\over f}={3 \times 10^8 m/s\over f}\]</p>
+            <p id="lambdaeqn">eqn</p>
+        <a>Frequency: </a>
+        <input type="number" id="commfreqarg" min="1" max="999" value="300" onchange="ChangedInput()">
+        <select id="commfreqexp" onchange="ChangedInput()">
+            <option value="0">Hz</option>
+            <option value="3">kHz</option>
+            <option value="6" selected>MHz</option>
+            <option value="9">GHz</option>
+            <option value="12">THz</option>
+        </select>
+        <hr />
+        <p>The gain \(G\) of a parabolic dish antenna of radius \(r\), efficiency \(\eta\), and wavelength \(\lambda\):
+            \[G={(2\pi r)^2\over \lambda^2}\eta\]</p>
+        <p>The monopole antenna achieves an ideal gain \(G=3.24\) at it's ideal length, one-quarter wavelength:
+                \[L={\lambda \over 4}\] 
         </p>
-
+        <p>The dipole antenna achieves an ideal gain \(G=1.64\) at it's ideal length, one-half wavelength:
+            \[L={\lambda \over 2}\] 
+        </p>
         <hr />
-        <p><b>Loading:</b></p>
-        <div>Load your *.xlsx file into this program using the Choose File button. Note: You must refresh this page if reloading a file of the same name.</div>
-        <!--<input type="file" id="one-file-input" onchange="LoadOneFile()" accept=".csv"><input hidden="true" class="btn" type="submit" value="Submit">-->
-        <input type="file" name="xlfile" id="xlf" onchange="LoadXLSXFile()" accept=".xlsx">
-        <br><br>
-        <button id="show-data-btn" onclick="ShowData()">Show File Data</button>
-        <table id="data-table">
-            <tr><td>File data is hidden or empty</td></tr>
-        </table>
+        <a>Transmitter:</a>
+        <select id="transmittertype" onchange="ChangedInput()">
+            <option value="1">Dipole</option>
+            <option value="2">Monopole</option>
+            <option value="3" selected>Parabolic</option>
+            <option value="4">Unspecified</option>
+        </select><br>
+        <a id="txlengthtext">Radius (not diameter): </a>
+        <input type="number" id="txantennalength" min="1" max="999" value="1" onchange="ChangedInput()">
+        <select id="txantennaexp" onchange="ChangedInput()">
+            <option value="-3">mm</option>
+            <option value="0" selected>m</option>
+            <option value="3">km</option>
+        </select>
+        <br>
+        <a id="txetatext">Reflective Efficiency (max 1.0): </a>
+        <input type="number" id="txdisheta" min="0" max="1" value="0.7" onchange="ChangedInput()">
+        <br>
+        <a>Gain:</a><input disabled type="number" id="txgain" value="1" onchange="ChangedInput()">
         <hr />
-        <p><b>Simulation:</b></p>
-        <div>Watch the simulation and see if what you've planned can work.</div>
-        <div class="control-bar">
-            <button id="start-btn" class="start-btn btn" onclick="StartSimulation(0.1)">Start</button>
-            <button id="halt-btn" class="halt-btn btn" onclick="HaltSimulation()">Stop</button>
-            <button id="start-fast-btn" class="start-btn btn" title="Go Fast" onclick="StartSimulation(1.0)">Hammer Time</button>
-        </div>
+        <a>Receiver:</a>
+        <select id="receivertype" onchange="ChangedInput()">
+            <option value="1">Dipole</option>
+            <option value="2">Monopole</option>
+            <option value="3" selected>Parabolic</option>
+            <option value="4">Unspecified</option>
+        </select><br>
+        <a id="rxlengthtext">Radius (not diameter): </a>
+        <input type="number" id="rxantennalength" min="1" max="999" value="1" onchange="ChangedInput()">
+        <select id="rxantennaexp" onchange="ChangedInput()">
+            <option value="-3">mm</option>
+            <option value="0" selected>m</option>
+            <option value="3">km</option>
+        </select>
+        <br>
+        <a id="rxetatext">Reflective Efficiency (max 1.0): </a>
+        <input type="number" id="rxdisheta" min="0" max="1" value="0.7" onchange="ChangedInput()">
+        <br>
+        <a>Gain:</a><input disabled type="number" id="rxgain" value="1" onchange="ChangedInput()">
         <hr />
-        <p>The vertical tab to the left of the map is selectable and can change what is shown:</p>
-        <div class="FlightTabs">
+        <p>For a given height \(h\) in feet, the radio-distance to the horizon \(R_{LOS}\) is computed in miles as
+            \[R_{LOS}=\sqrt{2h}\]</p><hr />
+        <a>Transmitter height above ground: </a>
+        <input type="number" id="txheight" value="14000" min="0" max="500000" value="1000" onchange="ChangedInput()">
+        <a>ft. Distance to horizon is: </a><a id="txrlosmi">0</a><a> miles, </a><a id="txrloskm">0</a><a> km.</a>
+        <br>
+        <a>Receiver height above ground: </a>
+        <input type="number" id="rxheight" value="1500" min="0" max="500000" value="1000" onchange="ChangedInput()">
+        <a>ft. Distance to horizon is: </a><a id="rxrlosmi">0</a><a> miles, </a><a id="rxrloskm">0</a><a> km.</a>
+        <br>
+        <a>Together, radio line-of-sight is possible up to a distance of </a>
+        <a id="rlosmi">0</a><a> miles, </a><a id="rloskm">0</a><a> km.</a>
+        <hr />
+        <p>The Friis equation for radio propagation computes power received \(P_R\) based upon power transmitted \(P_T\),
+            transmitter gain \(G_T\), receiver gain \(G_R\), wavelength \(\lambda\), and range \(R\).
+            \[P_R=P_T G_T G_R {\lambda^2 \over (4 \pi R)^2} \]</p>
+        <p>Range, \(R\) =
+        <input type="number" id="friisrange" value="100" min ="0" max="99999" onchange="ChangedInput()">
+        <select id="friisrangeexp" onchange="ChangedInput()">
+            <option value="0">m</option>
+            <option value="3" selected>km</option>
+        </select></p>
+        <p>Transmitter Power, \(P_T\) =
+            <input type="number" id="powertransmitted" value="100" min ="0" max="99999" onchange="ChangedInput()">
+            <select id="powertransmittedexp" onchange="ChangedInput()">
+                <option value="-3">mW</option>
+                <option value="0" selected>W</option>
+                <option value="3">kW</option>
+                <option value="6">MW</option>
+            </select></p>
+            <p id="friiseqn">eqn</p>
+        <hr />
+        <p>Often, it is necessary to solve for a maximum range \(R_{Max}\) based upon a minimum receive power \(P_{Rmin}\) using the following:
+           \[R_{Max}={\lambda \over 4 \pi}\sqrt{{P_T \over P_{Rmin}}G_T G_R}\]</p>
+           <a>Minimum Receive Power, \(P_{Rmin}\) =</a>
+           <input type="number" id="prminvalue" value="1" min ="0" max="99999" onchange="ChangedInput()">
+           <select id="prminexp" onchange="ChangedInput()">
+            <option value="-18">aW</option>
+            <option value="-15">fW</option>
+            <option value="-12">pW</option>
+            <option value="-9">nW</option>
+            <option value="-6">&#181;W</option>
+            <option value="-3">mW</option>
+            <option value="0" selected>W</option>
+            <option value="3">kW</option>
+            <option value="6">MW</option>
+        </select></p>
+           <p id="rmaxeqn">eqn</p>
+        <hr />
+        <p>Modify the display using the selectors at left:</p>
+        <div class="VertTabs">
             <div>Flight Plans:</div>
             <button id="TabConv"    class="tablinks active" onclick="openTab(event, 'TabConv')">Conventional</button>
             <button id="TabMix"     class="tablinks"        onclick="openTab(event, 'TabMix')">Mixed</button>
@@ -91,25 +150,11 @@ Copyright (C) 2012-present   SheetJS LLC
             <canvas class="flight-canvas" id="TheCanvas" width="730" height="700" style="border:1px solid black"></canvas>
         </div>
         <hr />
-        <!--Insruction Section of page-->
-        <div id = "instr">
-            <p>In Chrome, hit Ctrl-Shift-J to see the console tab for any messages. Save the output by right clicking on the console text and selecting "Save As"</p>
-            <p><b>Instructor Buttons:</b> Non-functional without instructor's library file.</p>
-            <button id="template-btn" onclick="GenerateOutputFile(false)">Create Template</button><br><br>
-            <button id="template-btn" onclick="GenerateOutputFile(true)">Create Answer Key</button><br><br>
-            <div>Batch Grading: "Choose File" will open a standard Open File window. Select any number of files in the same directory, and this program will immediately get to work. Look for grades in the console log.</div>
-            <input type="file" id="batch-file-input" onchange="BatchGradeFiles()" accept=".xlsx" multiple><br><br>
-            <button id="show-data-btn" onclick="SpeedUp()">Speed Up</button><br><br>
-            <button id="template-btn" onclick="SaveGradesToFile()">Save Grades in xlsx</button><br><br>
-            <hr />
-        </div>
-        <div style="font-size:10px;">Author: Thomas Kubler
+        Equation styling courtesy <a href="https://www.mathjax.org">MathJax</a>
+        <div style="font-size:10px;">
+            Author: Thomas Kubler
         <a style="font-size:10px;" href="mailto:thomas.kubler@gmail.com">thomas.kubler@gmail.com</a>
         <a style="font-size:10px;" href="mailto:thomas.kubler@usafa.edu">thomas.kubler@usafa.edu</a>
-        Programmed in Javascript</div>
-        <img id="myiconN" width="30" height="30" src="airplaneN.gif" hidden>
-        <img id="myiconS" width="30" height="30" src="airplaneS.gif" hidden>
-        <button id="instr-btn" class="start-btn btn" onclick="ToggleInstructor()">Instructor Mode</button>
     </div>
 </body>
 </html>
