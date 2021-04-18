@@ -46,7 +46,7 @@ var thermal_bandwidth;
 var thermal_temperature;
 const minvertical = 0;
 const maxvertical = 500000;
-const mingain = 0.1;
+const mingain = 1;
 const maxgain = Math.pow(10,12);
 const minnorm = 1;
 const maxnorm = 999;
