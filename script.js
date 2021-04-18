@@ -24,6 +24,7 @@ var comm_snr_act;
 var friis_p_r;
 var friis_p_r_min;
 var friis_p_t;
+var friis_r_max;
 var height_tx;
 var height_rx;
 var gain_tx;
@@ -260,31 +261,44 @@ function ChangedInput(){
     EnforceNumericalHTML("powertransmitted",1,1000000);
     friis_p_t = document.getElementById("powertransmitted").value * Math.pow(10,document.getElementById("powertransmittedexp").value);
     var pt, gt, gr, rr, ll,pr,prneat;
-    pt = MakeTripleNotation(friis_p_t);
+    pt = MakeTripleNotation(friis_p_t,"W");
     gt = MakeTripleNotation(gain_tx);
     gr = MakeTripleNotation(gain_rx);
-    ll = MakeTripleNotation(wavelength);
-    rr = MakeTripleNotation(friis_range);
+    ll = MakeTripleNotation(wavelength,"m");
+    rr = MakeTripleNotation(friis_range,"m");
     friis_p_r = friis_p_t*gain_tx*gain_rx*wavelength*wavelength/(FOURPI*FOURPI*friis_range*friis_range);
-    pr = MakeTripleNotation(friis_p_r);
+    pr = MakeTripleNotation(friis_p_r,"W");
     prneat = MakeEngNotation(friis_p_r,"W");
     var friisexpression = "P_R=P_T G_T G_R {\\lambda^2 \\over (4 \\pi R)^2}="
-                           +pt+"W \\times"+gt+"\\times "+gr+"\\frac{("+ll+"m)^2}{(4\\pi \\times "+rr+"m)^2}="
-                           +pr+"W="+prneat;
+                           +pt+"\\times "+gt+"\\times "+gr+"\\frac{("+ll+")^2}{(4\\pi \\times "+rr+")^2}="
+                           +pr+"="+prneat;
     NewMathAtItem(friisexpression,"friiseqn");
+
     //6. Compute R_max
-    EnforceNumericalHTML("")
+    EnforceNumericalHTML("prminvalue",0,999);
+    friis_p_r_min = document.getElementById("prminvalue").value * Math.pow(10,document.getElementById("prminexp").value);
+    var prmin = MakeTripleNotation(friis_p_r_min,"W");
+    friis_r_max = wavelength/(FOURPI)*Math.sqrt(friis_p_t/friis_p_r_min*gain_tx*gain_rx);
+    var rmaxtriple = MakeTripleNotation(friis_r_max,"m");
+    var rmaxeng = MakeEngNotation(friis_r_max,"m");
+    var rmaxexpression = "R_{Max}={\\lambda \\over 4 \\pi}\\sqrt{{P_T \\over P_{Rmin}}G_T G_R}="+
+                         "\\frac{"+ll+"}{4\\pi}\\sqrt{\\frac{"+pt+"}{"+prmin+"}"+gt+"\\times "+gr+"}="+
+                         rmaxtriple+"="+rmaxeng;
+    NewMathAtItem(rmaxexpression,"rmaxeqn");
+
+    //7. Determine at what range communication is possible for the two heights and the Pt/Pr_min scenario
+
 }
-function MakeTripleNotation(value){
+function MakeTripleNotation(value,units=""){
     var exp = Math.log(value) / Math.log(10);
     var triplets = Math.round(exp/3.0-0.5);
     var t_exp = 3*triplets;
     var argument = value / Math.pow(10,t_exp);
     if(t_exp == 0){
-        return argument.toPrecision(4);
+        return argument.toPrecision(4)+units;
     }
     else{
-        return argument.toPrecision(4)+"\\times "+"10^{"+t_exp+"}";
+        return argument.toPrecision(4)+"\\times "+"10^{"+t_exp+"}"+units;
     }
 }
 function MakeEngNotation(value, units){
@@ -305,9 +319,12 @@ function MakeEngNotation(value, units){
         case 9:     prefix = "G";   break;
         case 12:    prefix = "T";   break;
         case 15:    prefix = "P";   break;
-        default: break;
+        default: return ""; break;
     }
     if(units == "m"){ //don't go above km for distances
+        if(t_exp >= 6){ //use previous answer
+            return "";
+        }
         if(t_exp > 3){
             t_exp = 3;
             prefix = "k";
@@ -321,7 +338,6 @@ function MakeEngNotation(value, units){
         return argument.toPrecision(4)+prefix+units;
     }
 }
-
 
 function ComputePage(){
     console.log("computing page");

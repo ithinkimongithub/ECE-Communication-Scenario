@@ -42,7 +42,6 @@
         <p>The dipole antenna achieves an ideal gain \(G=1.64\) at it's ideal length, one-half wavelength:
             \[L={\lambda \over 2}\] 
         </p>
-        <hr />
         <a>Transmitter:</a>
         <select id="transmittertype" onchange="ChangedInput()">
             <option value="1">Dipole</option>
@@ -62,7 +61,7 @@
         <input type="number" id="txdisheta" min="0" max="1" value="0.7" onchange="ChangedInput()">
         <br>
         <a>Gain:</a><input disabled type="number" id="txgain" value="1" onchange="ChangedInput()">
-        <hr />
+        <br><br>
         <a>Receiver:</a>
         <select id="receivertype" onchange="ChangedInput()">
             <option value="1">Dipole</option>
@@ -83,8 +82,7 @@
         <br>
         <a>Gain:</a><input disabled type="number" id="rxgain" value="1" onchange="ChangedInput()">
         <hr />
-        <p>For a given height \(h\) in feet, the radio-distance to the horizon \(R_{LOS}\) is computed in miles as
-            \[R_{LOS}=\sqrt{2h}\]</p><hr />
+        <p>For a given height \(h\) in feet, the radio-distance to the horizon \(R_{LOS}\) is computed in miles: \(R_{LOS}=\sqrt{2h}\)</p>
         <a>Transmitter height above ground: </a>
         <input type="number" id="txheight" value="14000" min="0" max="500000" value="1000" onchange="ChangedInput()">
         <a>ft. Distance to horizon is: </a><a id="txrlosmi">0</a><a> miles, </a><a id="txrloskm">0</a><a> km.</a>
@@ -96,7 +94,7 @@
         <a>Together, radio line-of-sight is possible up to a distance of </a>
         <a id="rlosmi">0</a><a> miles, </a><a id="rloskm">0</a><a> km.</a>
         <hr />
-        <p>The Friis equation for radio propagation computes power received \(P_R\) based upon power transmitted \(P_T\),
+        <p>The Friis equation for propagation computes power received \(P_R\) based upon power transmitted \(P_T\),
             transmitter gain \(G_T\), receiver gain \(G_R\), wavelength \(\lambda\), and range \(R\).
             \[P_R=P_T G_T G_R {\lambda^2 \over (4 \pi R)^2} \]</p>
         <p>Range, \(R\) =
@@ -121,16 +119,20 @@
            <input type="number" id="prminvalue" value="1" min ="0" max="99999" onchange="ChangedInput()">
            <select id="prminexp" onchange="ChangedInput()">
             <option value="-18">aW</option>
-            <option value="-15">fW</option>
+            <option value="-15" selected>fW</option>
             <option value="-12">pW</option>
             <option value="-9">nW</option>
             <option value="-6">&#181;W</option>
             <option value="-3">mW</option>
-            <option value="0" selected>W</option>
+            <option value="0" >W</option>
             <option value="3">kW</option>
             <option value="6">MW</option>
         </select></p>
            <p id="rmaxeqn">eqn</p>
+        <hr />
+        <a>Communication is possible at distances within both limitations: \(R_{Max}\) and total \(R_{LOS}\),</a>
+        <br>
+        <a>meaning that the lower value represents the maximum communication distance: </a>
         <hr />
         <p>Modify the display using the selectors at left:</p>
         <div class="VertTabs">
