@@ -10,7 +10,8 @@ const FOURPICUBE = 4*4*4*Math.PI*Math.PI*Math.PI;
 const KMPERMILE = 1.61; //per equation sheet
 const BOLTZ = 1.38*Math.pow(10,-23); //Boltzmann's constant 1.38*10^-23
 const TWOPI = 2*Math.PI;
-//all distances are in km, not meters, and line of sight is based upon Distance(miles) = Sqrt(2*height(feet))
+const PI = Math.PI;
+//all distances are in meters
 /******************************************** SCENARIO VARIABLES *********************************************************/
 var freq;
 var wavelength;
@@ -43,12 +44,15 @@ var jammer_range;
 var jammer_power;
 var thermal_bandwidth;
 var thermal_temperature;
-/******************************************* VIEWING VARIABLES ************************************************************/
-var whichscenario;
-
-
-//document.getElementById('my-input-id').disabled = false;
-
+const minvertical = 0;
+const maxvertical = 500000;
+const mingain = 0.1;
+const maxgain = Math.pow(10,12);
+const minnorm = 1;
+const maxnorm = 999;
+const mindist = 1;
+const maxdist = 999999999;
+var multiplier; //for remembering scale :(
 //******************************************* INITIALIZATION FUNCTION ****************************************** */
 function NewMathAtItem(mathexpression, htmlitem){
     var input = mathexpression;
@@ -81,17 +85,14 @@ function NewMathAtItem(mathexpression, htmlitem){
 function InitPage () {
     console.log("loading page");
     ChangedInput(); //pulls in freq value from default HTML
-    UpdateCanvas();
 }
 //generic, enforce numerical entries
 function EnforceNumericalHTML(entryitem, min, max){
     var current = document.getElementById(entryitem).value;
-    console.log(entryitem,current);
     if(isNaN(current)) current = 0;
     if(current < min) current = min;
     if(current > max) current = max;
     document.getElementById(entryitem).value = current;
-    console.log("finish",current);
 }
 //generic, ChangedInput (go through all)
 function SetLengthHTML(length, arghtml, exphtml){
@@ -124,14 +125,14 @@ function ComputeDishGain(radius, wavelength, eta){
 }
 function ChangedInput(){
     //1. look at the frequency and compute wavelength for it.
-    EnforceNumericalHTML("commfreqarg",1,999);
+    EnforceNumericalHTML("commfreqarg",minnorm,maxnorm);
     var newarg = document.getElementById("commfreqarg").value;
     var newexp = document.getElementById("commfreqexp").value;
     freq = newarg * Math.pow(10,newexp);
     wavelength = SOL/freq;
-    var ff = MakeEngNotation(freq,"Hz");
-    var ww = MakeEngNotation(wavelength, "m");
-    var wavelengthexpression = "\\lambda=\\frac{3 \\times 10^8 m/s}{"+ff+"}="+ww;
+    var ff = MakeEngNotation(freq,"Hz",false,true);
+    var ww = MakeEngNotation(wavelength, "m",false,true);
+    var wavelengthexpression = "\\lambda=\\frac{c}{f}=\\frac{3 \\times 10^8 m/s}{"+ff+"}="+ww;
     NewMathAtItem(wavelengthexpression,"lambdaeqn");
 
     //2. check the tx dish type and compute as necessary
@@ -164,7 +165,7 @@ function ChangedInput(){
         document.getElementById("txetatext").hidden = false;
         document.getElementById("txdisheta").hidden = false;
         document.getElementById("txantennalength").disabled = false;
-        EnforceNumericalHTML("txantennalength",1,999);
+        EnforceNumericalHTML("txantennalength",minnorm,maxnorm);
         var exp = parseFloat(document.getElementById("txantennaexp").value);
         tx_antenna_length = document.getElementById("txantennalength").value * Math.pow(10,exp);
         EnforceNumericalHTML("txdisheta",0,1);
@@ -177,7 +178,7 @@ function ChangedInput(){
         document.getElementById("txantennalength").hidden = true;
         document.getElementById("txantennaexp").hidden = true;
         document.getElementById("txgain").disabled = false;
-        EnforceNumericalHTML("txgain",0,Math.pow(10,12));
+        EnforceNumericalHTML("txgain",mingain,maxgain);
         gain_tx = document.getElementById("txgain").value;
     }
     //3. check the rx dish type and compute as well
@@ -223,42 +224,14 @@ function ChangedInput(){
         document.getElementById("rxantennalength").hidden = true;
         document.getElementById("rxantennaexp").hidden = true;
         document.getElementById("rxgain").disabled = false;
-        EnforceNumericalHTML("rxgain",0,Math.pow(10,12));
+        EnforceNumericalHTML("rxgain",mingain,maxgain);
         gain_rx = document.getElementById("rxgain").value;
     }
-    //4. Compute Lines-of-sight
-    var miles, displaymiles, kms, displaykms;
-    EnforceNumericalHTML("txheight",0,500000);
-    height_tx = document.getElementById("txheight").value;
-    miles = Math.sqrt(2*height_tx); //miles first, set HTML
-    displaymiles = miles.toPrecision(4);
-    kms = miles*1.61;
-    displaykms = kms.toPrecision(4);
-    los_tx = kms;
-    document.getElementById("txrlosmi").textContent = displaymiles.toString();
-    document.getElementById("txrloskm").textContent = displaykms.toString();
 
-    EnforceNumericalHTML("rxheight",0,500000);
-    height_rx = document.getElementById("rxheight").value;
-    miles = Math.sqrt(2*height_rx); //miles first, set HTML
-    displaymiles = miles.toPrecision(4);
-    kms = miles*1.61;
-    displaykms = kms.toPrecision(4);
-    los_rx = kms;
-    document.getElementById("rxrlosmi").textContent = displaymiles.toString();
-    document.getElementById("rxrloskm").textContent = displaykms.toString();
-
-    kms = los_tx + los_rx;
-    displaykms = kms.toPrecision(4);
-    miles = kms/1.61;
-    displaymiles = miles.toPrecision(4);
-    document.getElementById("rlosmi").textContent = displaymiles.toString();
-    document.getElementById("rloskm").textContent = displaykms.toString();
-
-    //5. Compute Friis
-    EnforceNumericalHTML("friisrange",1,1000000);
+    //4. Compute Friis
+    EnforceNumericalHTML("friisrange",mindist,maxdist);
     friis_range = document.getElementById("friisrange").value * Math.pow(10,document.getElementById("friisrangeexp").value);
-    EnforceNumericalHTML("powertransmitted",1,1000000);
+    EnforceNumericalHTML("powertransmitted",minnorm,maxnorm);
     friis_p_t = document.getElementById("powertransmitted").value * Math.pow(10,document.getElementById("powertransmittedexp").value);
     var pt, gt, gr, rr, ll,pr,prneat;
     pt = MakeTripleNotation(friis_p_t,"W");
@@ -268,25 +241,73 @@ function ChangedInput(){
     rr = MakeTripleNotation(friis_range,"m");
     friis_p_r = friis_p_t*gain_tx*gain_rx*wavelength*wavelength/(FOURPI*FOURPI*friis_range*friis_range);
     pr = MakeTripleNotation(friis_p_r,"W");
-    prneat = MakeEngNotation(friis_p_r,"W");
+    prneat = MakeEngNotation(friis_p_r,"W",false,true);
     var friisexpression = "P_R=P_T G_T G_R {\\lambda^2 \\over (4 \\pi R)^2}="
                            +pt+"\\times "+gt+"\\times "+gr+"\\frac{("+ll+")^2}{(4\\pi \\times "+rr+")^2}="
                            +pr+"="+prneat;
     NewMathAtItem(friisexpression,"friiseqn");
 
-    //6. Compute R_max
-    EnforceNumericalHTML("prminvalue",0,999);
+    //5. Compute R_max
+    EnforceNumericalHTML("prminvalue",minnorm,maxnorm);
     friis_p_r_min = document.getElementById("prminvalue").value * Math.pow(10,document.getElementById("prminexp").value);
     var prmin = MakeTripleNotation(friis_p_r_min,"W");
     friis_r_max = wavelength/(FOURPI)*Math.sqrt(friis_p_t/friis_p_r_min*gain_tx*gain_rx);
     var rmaxtriple = MakeTripleNotation(friis_r_max,"m");
-    var rmaxeng = MakeEngNotation(friis_r_max,"m");
-    var rmaxexpression = "R_{Max}={\\lambda \\over 4 \\pi}\\sqrt{{P_T \\over P_{Rmin}}G_T G_R}="+
+    var rmaxeng = MakeEngNotation(friis_r_max,"m",true,false);
+    var rmaxexpression = "R_{Friis}=R_{Max}={\\lambda \\over 4 \\pi}\\sqrt{{P_T \\over P_{Rmin}}G_T G_R}="+
                          "\\frac{"+ll+"}{4\\pi}\\sqrt{\\frac{"+pt+"}{"+prmin+"}"+gt+"\\times "+gr+"}="+
-                         rmaxtriple+"="+rmaxeng;
+                         rmaxtriple+rmaxeng;
     NewMathAtItem(rmaxexpression,"rmaxeqn");
 
+    //6. Compute Lines-of-sight
+    var rmiles,tmiles,miles, dtmiles, drmiles,displaymiles, tkms, rkms, kms, displaykms;
+    EnforceNumericalHTML("txheight",minvertical,maxvertical);
+    height_tx = parseFloat(document.getElementById("txheight").value);
+    tmiles = Math.sqrt(2*height_tx); //miles first, set HTML
+    dtmiles = tmiles.toPrecision(4);
+    tkms = tmiles*1.61;
+    displaykms = tkms.toPrecision(4);
+    los_tx = tkms*1000;
+    document.getElementById("txrlosmi").textContent = dtmiles.toString();
+    document.getElementById("txrloskm").textContent = displaykms.toString();
+
+    EnforceNumericalHTML("rxheight",minvertical,maxvertical);
+    height_rx = parseFloat(document.getElementById("rxheight").value);
+    rmiles = Math.sqrt(2*height_rx); //miles first, set HTML
+    drmiles = rmiles.toPrecision(4);
+    rkms = rmiles*1.61;
+    displaykms = rkms.toPrecision(4);
+    los_rx = rkms*1000;
+    document.getElementById("rxrlosmi").textContent = drmiles.toString();
+    document.getElementById("rxrloskm").textContent = displaykms.toString();
+
+    los_total = los_tx + los_rx; //in meters
+
+    miles = rmiles + tmiles;
+    displaymiles = miles.toPrecision(4);
+    kms = miles*1.61;
+    displaykms = kms.toPrecision(4);
+    
+    var rlosexpression = "R_{LOS}=\\sqrt{2h_1}+\\sqrt{2h_2}=\\sqrt{2\\times "+height_tx+"}+\\sqrt{2\\times "+height_rx+"}=("+
+                        dtmiles+" mi +"+drmiles+" mi) \\times 1.61\\frac{km}{mi}="+displaykms+" km";
+    NewMathAtItem(rlosexpression,"rloseqn");
+
     //7. Determine at what range communication is possible for the two heights and the Pt/Pr_min scenario
+    comm_range_viable = Math.min(los_total, friis_r_max);
+    var commexpression = "R_{Comm}=Min(R_{LOS},R_{Friis})=";
+    var los_total_text = MakeEngNotation(los_total,"m");
+    var friis_range_text = MakeEngNotation(friis_r_max,"m");
+    if(los_total < friis_r_max){
+        commexpression += los_total_text;
+    }
+    else{
+        commexpression += rmaxtriple + "="+friis_range_text;
+    }
+    NewMathAtItem(commexpression,"rcommeqn");
+
+    ChangeLowerInput(true);
+
+    UpdateCanvas(); //go to the drawing function
 
 }
 function MakeTripleNotation(value,units=""){
@@ -294,598 +315,330 @@ function MakeTripleNotation(value,units=""){
     var triplets = Math.round(exp/3.0-0.5);
     var t_exp = 3*triplets;
     var argument = value / Math.pow(10,t_exp);
+    var argstring = argument.toPrecision(4);
+    argument = parseFloat(argstring);
+    //then check if argument is 1000 due to some precision in the log and rounding
+    if(argument >= 1000){
+        t_exp += 3;
+        argument = value / Math.pow(10,t_exp);
+        argstring = argument.toPrecision(4);
+    }
+    else if(argument < 1){
+        t_exp -= 3;
+        argument = value / Math.pow(10,t_exp);
+        argstring = argument.toPrecision(4);
+    }
     if(t_exp == 0){
-        return argument.toPrecision(4)+units;
+        return argstring+units;
     }
     else{
-        return argument.toPrecision(4)+"\\times "+"10^{"+t_exp+"}"+units;
+        return argstring+"\\times "+"10^{"+t_exp+"}"+units;
     }
 }
-function MakeEngNotation(value, units){
+function MakeEngNotation(value, units, prependequals = false, forceoutput = false){
     var exp = Math.log(value) / Math.log(10);
     var triplets = Math.round(exp/3.0-0.5);
     var t_exp = 3*triplets;
     var prefix = " ";
+    var output = "";
+    var precision = 4; //if going to millions of meters, increase precision to keep digits from turning into sci notation
+    if(prependequals){
+        output = "=";
+    }
     switch(t_exp){
         case -18:   prefix = "a";   break;
         case -15:   prefix = "f";   break;
         case -12:   prefix = "p";   break;
         case -9:    prefix = "n";   break;
-        case -6:    prefix = "\\mu ";   break; //debugging micro?
+        case -6:    prefix = "\\mu ";   break; //debugging micro? make sure to have a space after as in "\\mu " not "\\mu"
         case -3:    prefix = "m";   break;
-        case 0:     prefix = " ";    break;
+        case 0:     prefix = " ";   break;
         case 3:     prefix = "k";   break;
         case 6:     prefix = "M";   break;
         case 9:     prefix = "G";   break;
         case 12:    prefix = "T";   break;
         case 15:    prefix = "P";   break;
-        default: return ""; break;
+        default: break;
     }
     if(units == "m"){ //don't go above km for distances
-        if(t_exp >= 6){ //use previous answer
-            return "";
-        }
-        if(t_exp > 3){
+        if(t_exp >= 3){
             t_exp = 3;
             prefix = "k";
+            precision = exp;
         }
     }
+    if(t_exp == 0 && forceoutput == false){
+        return "";
+    }
     var argument = value / Math.pow(10,t_exp);
-    if(t_exp == 0){
-        return argument.toPrecision(4)+units;
+    output += argument.toPrecision(precision)+prefix+units;
+    return output;
+}
+function ChangeLowerInput(pullfromupperhalf=false){
+    //if pullfromupperhalf == true, then we will not call "ChangedInput()" and instead pull data from above to here
+    //else, this was a button click in the lower half and we will push all data from the lower to the upper half (values only, not visibility)
+    if(pullfromupperhalf == true){
+        document.getElementById("lowerfreq").value = document.getElementById("commfreqarg").value;
+        document.getElementById("lowerfreqexp").value = document.getElementById("commfreqexp").value;
+        document.getElementById("lowertxheight").value = document.getElementById("txheight").value;
+        document.getElementById("lowerrxheight").value = document.getElementById("rxheight").value;
+        document.getElementById("lowerpowertrans").value = document.getElementById("powertransmitted").value;
+        document.getElementById("lowerpowertransexp").value = document.getElementById("powertransmittedexp").value;
+        document.getElementById("lowerprmin").value = document.getElementById("prminvalue").value;
+        document.getElementById("lowerprminexp").value = document.getElementById("prminexp").value;
+        //antenna settings :(
+        document.getElementById("lowertxtype").value = document.getElementById("transmittertype").value;
+        document.getElementById("lowertxtext").textContent = document.getElementById("txlengthtext").textContent;
+        document.getElementById("lowertxtext").hidden = document.getElementById("txlengthtext").hidden;
+        document.getElementById("lowertxlength").value = document.getElementById("txantennalength").value;
+        document.getElementById("lowertxlength").hidden = document.getElementById("txantennalength").hidden;
+        document.getElementById("lowertxlength").disabled = document.getElementById("txantennalength").disabled;
+        document.getElementById("lowertxexp").value = document.getElementById("txantennaexp").value;
+        document.getElementById("lowertxexp").hidden = document.getElementById("txantennaexp").hidden;
+        document.getElementById("lowertxeta").value = document.getElementById("txdisheta").value;
+        document.getElementById("lowertxeta").hidden = document.getElementById("txdisheta").hidden;
+        document.getElementById("lowertxetatext").hidden = document.getElementById("txetatext").hidden;
+        document.getElementById("lowertxgain").value = document.getElementById("txgain").value;
+        document.getElementById("lowertxgain").disabled = document.getElementById("txgain").disabled;
+        //receivers :whoooa
+        document.getElementById("lowerrxtype").value = document.getElementById("receivertype").value;
+        document.getElementById("lowerrxtext").textContent = document.getElementById("rxlengthtext").textContent;
+        document.getElementById("lowerrxtext").hidden = document.getElementById("rxlengthtext").hidden;
+        document.getElementById("lowerrxlength").value = document.getElementById("rxantennalength").value;
+        document.getElementById("lowerrxlength").hidden = document.getElementById("rxantennalength").hidden;
+        document.getElementById("lowerrxlength").disabled = document.getElementById("rxantennalength").disabled;
+        document.getElementById("lowerrxexp").value = document.getElementById("rxantennaexp").value;
+        document.getElementById("lowerrxexp").hidden = document.getElementById("rxantennaexp").hidden;
+        document.getElementById("lowerrxeta").value = document.getElementById("rxdisheta").value;
+        document.getElementById("lowerrxeta").hidden = document.getElementById("rxdisheta").hidden;
+        document.getElementById("lowerrxetatext").hidden = document.getElementById("rxetatext").hidden;
+        document.getElementById("lowerrxgain").value = document.getElementById("rxgain").value;
+        document.getElementById("lowerrxgain").disabled = document.getElementById("rxgain").disabled;
+        //end. this is the bottom of the top-down flow of information
     }
     else{
-        return argument.toPrecision(4)+prefix+units;
+        EnforceNumericalHTML("lowerfreq",minnorm,maxnorm);
+        document.getElementById("commfreqarg").value = document.getElementById("lowerfreq").value;
+        document.getElementById("commfreqexp").value = document.getElementById("lowerfreqexp").value;
+        EnforceNumericalHTML("lowertxheight",minvertical,maxvertical);
+        document.getElementById("txheight").value = document.getElementById("lowertxheight").value;
+        EnforceNumericalHTML("lowerrxheight",minvertical,maxvertical);
+        document.getElementById("rxheight").value = document.getElementById("lowerrxheight").value;
+        EnforceNumericalHTML("lowerpowertrans",minnorm,maxnorm);
+        document.getElementById("powertransmitted").value = document.getElementById("lowerpowertrans").value;
+        document.getElementById("powertransmittedexp").value = document.getElementById("lowerpowertransexp").value;
+        EnforceNumericalHTML("lowerprmin",minnorm,maxnorm);
+        document.getElementById("prminvalue").value = document.getElementById("lowerprmin").value;
+        document.getElementById("prminexp").value = document.getElementById("lowerprminexp").value;
+        
+        //only copy values from the lower half and upper half logic will flow back down once
+        document.getElementById("transmittertype").value = document.getElementById("lowertxtype").value;
+        EnforceNumericalHTML("lowertxlength",minnorm,maxnorm);
+        document.getElementById("txantennalength").value = document.getElementById("lowertxlength").value;
+        document.getElementById("txantennaexp").value = document.getElementById("lowertxexp").value;
+        EnforceNumericalHTML("lowertxeta",0,1);
+        document.getElementById("txdisheta").value = document.getElementById("lowertxeta").value;
+        EnforceNumericalHTML("lowertxgain",mingain,maxgain);
+        document.getElementById("txgain").value = document.getElementById("lowertxgain").value;
+
+        document.getElementById("receivertype").value = document.getElementById("lowerrxtype").value;
+        EnforceNumericalHTML("lowerrxlength",minnorm,maxnorm);
+        document.getElementById("rxantennalength").value = document.getElementById("lowerrxlength").value;
+        document.getElementById("rxantennaexp").value = document.getElementById("lowerrxexp").value;
+        EnforceNumericalHTML("lowerrxeta",0,1);
+        document.getElementById("rxdisheta").value = document.getElementById("lowerrxeta").value;
+        EnforceNumericalHTML("lowerrxgain",mingain,maxgain);
+        document.getElementById("rxgain").value = document.getElementById("lowerrxgain").value;
+        
+        //call for the top-down flow
+        ChangedInput();
     }
 }
 
-function ComputePage(){
-    console.log("computing page");
-    //
-}
 //******************************************************************* DRAWING ****************************************** */
-function DrawDistWithBackground(midx, midy,distinkm, ctx, color){
-    ctx.fillStyle = "white";
-    ctx.font = "12px Tahoma heavy";
-    ctx.fillRect(midx-22,midy-5,65,10);
-    ctx.fillStyle = color;
-    ctx.fillText(distinkm.toFixed(2)+"km",midx-20,midy+5);
+var earthsize = 4;
+var heightfttopixel = 200;
+var sharpness = 0.2;
+function ChangeEarth(growthdir){
+    if(growthdir > 0){
+        earthsize *= 0.9;
+    }
+    else{
+        earthsize *= 1.1;
+    }
+    UpdateCanvas();
+}
+function ChangeHeights(growthdir){
+    if(growthdir > 0){
+        heightfttopixel *= 0.9;
+    }
+    else{
+        heightfttopixel *= 1.1;
+    }
+    UpdateCanvas();
+}
+function ChangeGainArc(growthdir){
+    //console.log("hello");
+    if(growthdir > 0){
+        sharpness *= 1.05;
+    }
+    else{
+        sharpness *= 0.95;
+    }
+    UpdateCanvas();
 }
 function UpdateCanvas(){
-    var i;
     var thecanvas = document.getElementById("TheCanvas");
     var ctx = thecanvas.getContext("2d");
     //clears the canvas
-    ctx.clearRect(0,0,thecanvas.width,thecanvas.height);
-    //draw the grid
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 2;
-    for(i=0; i < 10 ;i++){
-        ctx.beginPath();
-        ctx.moveTo(xstart + i*pxpergrid, ystart);
-        ctx.lineTo(xstart + i*pxpergrid, ystart + 9*pxpergrid);
-        ctx.stroke();
-        ctx.closePath();
+    var canvas_width = thecanvas.width;
+    var canvas_height = thecanvas.height;
+    ctx.clearRect(0,0,canvas_width,canvas_height);
 
-        ctx.beginPath();
-        ctx.moveTo(xstart, ystart + i*pxpergrid);
-        ctx.lineTo(xstart + 9*pxpergrid, ystart + i*pxpergrid);
-        ctx.stroke();
-        ctx.closePath();
+    var pix_mid_x = canvas_width / 2;
+    var pix_mid_y = canvas_height / 2;
+    var pix_earth_rad = canvas_height*earthsize; //get a slider for this
+    var pix_max_x = canvas_width;
+    var pix_max_y = canvas_height; //top-down for y coords
+    var pix_height_tx = height_tx / heightfttopixel;
+    var pix_height_rx = height_rx / heightfttopixel;
+    var pix_hyp_tx = pix_height_tx + pix_earth_rad;
+    var pix_hyp_rx = pix_height_rx + pix_earth_rad;
+    var pix_los_x1 = Math.sqrt((pix_hyp_tx*pix_hyp_tx)-(pix_earth_rad*pix_earth_rad));   
+    var pix_los_x2 = Math.sqrt((pix_hyp_rx*pix_hyp_rx)-(pix_earth_rad*pix_earth_rad));  
+    var pix_los_total = pix_los_x1 + pix_los_x2;
+    var pix_tx_x = pix_mid_x - pix_los_x1;
+    var pix_tx_y = pix_mid_y;
+    var pix_rx_x = pix_mid_x + pix_los_x2;
+    var pix_rx_y = pix_mid_y;
+
+    //compute the R_Friis by scaling R_LOS and draw a friis circle
+    //use gradient fill
+    var pix_friis_rmax;
+    var oldmulti = multiplier;
+    multiplier = pix_los_total / los_total;
+    if(los_total < 1.0){
+        multiplier = oldmulti;
+        console.log("drawing is incorrect when both heights are 0'")
     }
-    //draw the hills as filled in gray circles & add text for heights
-    for(i = 0; i < NUMDUDS; i++){
-        var xcenter = gridToPixelx(ADUDX[i]);
-        var ycenter = gridToPixely(ADUDY[i]);
-        ctx.beginPath();
-        ctx.fillStyle = "gray";
-        ctx.arc(xcenter, ycenter, pxhillradius, 0, 2* Math.PI);
-        ctx.fill();
-        ctx.closePath();
-        ctx.fillStyle = "black";
-        ctx.font = "14px Tahoma Heavy";
-        var height = ADUDH[i];
-        ctx.fillText(height.toString(),xcenter-17,ycenter+5);
-    }
-    //draw the links between the hills (active only)
-    if(vis_Links){
-        ctx.lineWidth = 4;
-        for(i = 0; i < numcommlinks; i++){
-            if(A3commlinks[i] > 0){
-                var color = "#D55"; //404 for purple
-                if(b_cyberactive || commDisabled[i]){ //if cyber is active or if the link is down
-                    color = "#777";
-                }
-                ctx.strokeStyle = color;
-                var samfrom = maplinktosam(i,false);
-                var samto   = maplinktosam(i, true);
-                var xfrom = gridToPixelx(ASAMX[samfrom]);
-                var yfrom = gridToPixely(ASAMY[samfrom]);
-                var xto = gridToPixelx(ASAMX[samto]);
-                var yto = gridToPixely(ASAMY[samto]);
-                ctx.beginPath();
-                ctx.moveTo(xfrom, yfrom);
-                ctx.lineTo(xto,yto);
-                ctx.stroke();
-                ctx.closePath();
-                if(vis_Dist){
-                    var midx = (xfrom + xto) / 2.0;
-                    var midy = (yfrom + yto) / 2.0;
-                    var xdist = ASAMX[samfrom] - ASAMX[samto];
-                    var ydist = ASAMY[samfrom] - ASAMY[samto];
-                    var squared = xdist*xdist + ydist*ydist;
-                    var distinkm = Math.sqrt(squared)*kmpergrid;
-                    DrawDistWithBackground(midx, midy, distinkm, ctx, color);
-                }
-                if(b_simulating && b_cyberactive && b_crossover){
-                    ctx.strokeStyle = "orange";
-                    ctx.lineWidth = 7;
-                    ctx.beginPath();
-                    ctx.moveTo(xfrom, yfrom);
-                    ctx.lineTo(xto,yto);
-                    ctx.stroke();
-                    ctx.closePath();
-                }
-            }
-        }
-    }
-    //draw the sam sites as filled in green circles
-    //draw the range rings for each site. If cyber or jamming, go gray
-    ctx.lineWidth = 2;
-    for(i = 0; i < NUMSITES; i++){
-        var xcenter = gridToPixelx(ASAMX[i]);
-        var ycenter = gridToPixely(ASAMY[i]);
-        ctx.fillStyle = "green";
-        if(samdisabled[i]){
-            ctx.fillStyle = "#555";
-        }
-        ctx.beginPath();
-        ctx.arc(xcenter, ycenter, pxhillradius, 0, 2* Math.PI);
-        ctx.fill();
-        ctx.closePath();
-        if(vis_LOS == true){
-            var radius = ASamVisToHorizon[i];
-            var drawradius = radius * pxpergrid / kmpergrid;
-            var color = "gray";
-            ctx.strokeStyle = color;
-            ctx.beginPath();
-            ctx.arc(xcenter, ycenter, radius, 0, 2* Math.PI);
-            ctx.stroke();
-            ctx.closePath();
-            if(vis_Dist){
-                DrawDistWithBackground(xcenter + drawradius, ycenter, drawradius, ctx, color);
-            }
-        }
-        if(vis_Radar){
-            var radius = A6SiteAcftDetRange[i][whichPackage]; //not Keyed. display student's input
-            var drawradius = radius*pxpergrid/kmpergrid;
-            var color = "blue";
-            if(samdisabled[i] || b_cyberactive){// || b_jamactive){
-                color = "#777";
-            }
-            ctx.strokeStyle = color;
-            ctx.beginPath();
-            ctx.arc(xcenter, ycenter, drawradius, 0, 2* Math.PI);
-            ctx.stroke();
-            ctx.closePath();
-            if(vis_Dist){
-                DrawDistWithBackground(xcenter + drawradius, ycenter-20, drawradius, ctx, color);
-            }
-        }
-        if(vis_Jam){
-            var radius = ASiteAcftBurnRange[i][whichPackage];
-            var drawradius = radius*pxpergrid/kmpergrid;
-            var color = "red";
-            if(samdisabled[i] || b_cyberactive){
-                color = "black";
-            }
-            ctx.strokeStyle = color;
-            ctx.beginPath();
-            ctx.arc(xcenter, ycenter, drawradius, 0, 2* Math.PI);
-            ctx.stroke();
-            ctx.closePath();
-            if(vis_Dist){
-                DrawDistWithBackground(xcenter + drawradius, ycenter, drawradius, ctx, color);
-            }
-        }
-        ctx.fillStyle = "black";
-        ctx.font = "14px Tahoma Heavy";
-        ctx.fillText(ASAMH[i].toString(),xcenter-17,ycenter-4);
-        ctx.fillText(ASAMNAMES[ASAMTYPE[i]],xcenter-27,ycenter+12);
-    }
-    //draw a mask to get rid of ring's overflow, but only top and bottom and left side so that right side radii show up
+    pix_friis_rmax= friis_r_max*multiplier;
+    var gradient = ctx.createRadialGradient(pix_tx_x,pix_tx_y,0,pix_tx_x,pix_tx_y,pix_friis_rmax);
+    var outercolor = 'rgb(255, 255, 200)';
+    var innercolor = 'rgb(255, 165, 0)';
+    gradient.addColorStop(0,innercolor);
+    gradient.addColorStop(1,outercolor);
+    ctx.strokeStyle = outercolor;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(pix_tx_x,pix_tx_y,pix_friis_rmax,0,TWOPI); //
+    ctx.stroke();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    //for gain sharpness, draw segments to block this orange-ish cloud
+    //compute the angle in 0..PI from the 270-degree point
+    var factor = 1.0-1/Math.pow(gain_tx,sharpness);
+    console.log(factor);
+    var upperrad = PI+factor*PI;
+    var lowerrad = PI-factor*PI;
+    var arc_x = pix_tx_x + pix_friis_rmax*Math.cos(upperrad);
+    var arc_y_upper = pix_tx_y + pix_friis_rmax*Math.sin(upperrad);
+    var arc_y_lower = pix_tx_y + pix_friis_rmax*Math.sin(lowerrad);
+    //draw rects and triangles to show a gain pattern (pacman style)
     ctx.fillStyle = "white";
-    ctx.fillRect(0,0,thecanvas.width,ystart-1);
-    ctx.fillRect(0,ystart+9*pxpergrid+1,thecanvas.width,thecanvas.height-ystart+9*pxpergrid+1);
-    ctx.fillRect(0,ystart,xstart,thecanvas.height-ystart);
-    //draw letters and numbers on the side of the grid
+    var rect_x = Math.min(arc_x,pix_tx_x);
+    ctx.fillRect(0,0,rect_x+1,pix_max_y);
+    if(upperrad <= 1.5*PI){
+        ctx.beginPath();
+        ctx.moveTo(pix_tx_x,pix_tx_y);
+        ctx.lineTo(arc_x,arc_y_upper);
+        ctx.lineTo(arc_x,arc_y_lower);
+        ctx.fill();
+    }
+    else{
+        ctx.fillRect(0,0,arc_x,arc_y_upper);
+        ctx.fillRect(0,arc_y_lower,arc_x,pix_max_y-arc_y_lower+1);
+        ctx.beginPath();
+        ctx.moveTo(pix_tx_x,pix_tx_y);
+        ctx.lineTo(arc_x,arc_y_upper);
+        ctx.lineTo(pix_tx_x,arc_y_upper);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(pix_tx_x,pix_tx_y);
+        ctx.lineTo(arc_x,arc_y_lower);
+        ctx.lineTo(pix_tx_x,arc_y_lower);
+        ctx.fill();
+    }
+    //gray out the invisible region of the gain pattern blocked by earth
+    if(friis_r_max > los_total){
+        var xsize = pix_friis_rmax - (pix_mid_x - pix_tx_x);
+        ctx.fillRect(pix_mid_x,pix_mid_y,pix_mid_x,pix_mid_y);
+    }
+
+    //draw the tangent behind Earth for visibility
+    ctx.strokeStyle = "blue";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0,pix_mid_y);
+    ctx.lineTo(pix_max_x,pix_mid_y);
+    ctx.stroke();
+
+    //draw the visibility tangent which has length R_LOS_MAX - use this value to scale the Friis circle
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(pix_tx_x,pix_tx_y);
+    ctx.lineTo(pix_rx_x,pix_rx_y);
+    ctx.stroke();
+
+    //draw a curved Earth surface
+    ctx.strokeStyle = "green";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(pix_mid_x,pix_mid_y+pix_earth_rad,pix_earth_rad,0,TWOPI);
+    ctx.stroke();
+    ctx.fillStyle = "green";
+    ctx.fill();
+
+    //draw curves for transmitters
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(pix_mid_x,pix_mid_y+pix_earth_rad,pix_earth_rad+pix_height_tx,PI,1.5*PI);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(pix_mid_x,pix_mid_y+pix_earth_rad,pix_earth_rad+pix_height_rx,1.5*PI,TWOPI);
+    ctx.stroke();
+
+    //draw text for solutions, starting with Line of Sight just below middle of screen
+    ctx.font = "30px Arial";
     ctx.fillStyle = "black";
-    ctx.font = "20px Tahoma";
-    for(i=0;i < 9; i++){
-        ctx.fillText(letters[i], xstart - pxhalfgrid-5, ystart + (9-i)*pxpergrid - pxhalfgrid + 10);
-        ctx.fillText(numbers[i], xstart + pxhalfgrid + i*pxpergrid - 6, ystart + 9*pxpergrid + pxhalfgrid);
-    }
-    //draw the flight plan 0..17 indexed
-    if(vis_fplan){
-        for(i = 0; i < 18; i++){
-            var gridx, gridy, prevx, prevy;
-            gridx = A9fplans[whichPackage][i];
-            if(gridx < 1 || gridx > 9){
-                break; //only the for-loop, done drawing
-            }
-            //cases for the y-value
-            if(i < 9){
-                gridy = i+1;
-                prevy = gridy -1;
-            }
-            else{
-                gridy = 18 - i;
-                prevy = gridy + 1;
-            }
-
-            //special cases to set the x-value
-            if(i == 0 || i == 9){
-                prevx = gridx;
-            }
-            else{
-                prevx = A9fplans[whichPackage][i-1];
-            }
-            ctx.beginPath();
-            ctx.strokeStyle = "#F5F";
-            ctx.lineWidth = 3;
-            ctx.moveTo(gridToPixelx(prevx),gridToPixely(prevy));
-            ctx.lineTo(gridToPixelx(gridx),gridToPixely(gridy));
-            ctx.stroke();
-            ctx.closePath();
-            if(i == 8 || i == 17){
-                //then also draw a line up to the top or bottom
-                prevx = gridx;
-                prevy = gridy;
-                if(i == 8){
-                    gridy = 10;
-                }
-                else{
-                    gridy = 0;
-                }
-                ctx.beginPath();
-                ctx.strokeStyle = "#F5F";
-                ctx.lineWidth = 3;
-                ctx.moveTo(gridToPixelx(prevx),gridToPixely(prevy));
-                ctx.lineTo(gridToPixelx(gridx),gridToPixely(gridy));
-                ctx.stroke();
-                ctx.closePath();
-            }
-        }
-    }
-    ctx.font = "12px Tahoma";
+    var dkms = los_total/1000;
+    var rlostext = dkms.toPrecision(4)+"km";
+    ctx.fillText("Maximum LOS Range is "+rlostext, pix_mid_x-250, pix_mid_y+40);
+    //friis range, near the transmitter
+    ctx.font = "30px Arial";
     ctx.fillStyle = "black";
-    ctx.fillText(combinednames,250,20); //just a progress counter
-    //draw the jamming routine? add a status message
-    ctx.font = "20px Tahoma";
-    ctx.fillStyle = "black";
-    if(b_jamactive && (b_simulating || b_showresults)){
-        ctx.fillText("Jammer On",xstart,yend+60);
-    }
-    if(b_cyberactive  && (b_simulating || b_showresults)){
-        ctx.fillText("Cyber Attack Active",xstart+120,yend+60);
-    }
-    //draw the HARM routine? -I hate the HARM Interface but fine
-    //draw the airplane, and also validate whether the flight plan is legal
-    if(b_simulating || b_showresults){
-        var img;
-        var bsouthbound = false;
-        if(n_simstep >= FirstSouthbound){
-            img = document.getElementById("myiconS");
-            bsouthbound = true;
-        }
-        else{
-            img = document.getElementById("myiconN");
-        }
-        var gridx = A9fplans[whichPackage][myActiveWaypointIndex];
-        var gridy = myActiveWaypointGridy;
-        var posx  = gridToPixelx(gridx);
-        var posy  = gridToPixely(gridy);
-        var ngridx = A9fplans[whichPackage][myNextWaypointIndex];
-        var ngridy = myNextWaypointGridy;
-        var nposx = gridToPixelx(ngridx);
-        var nposy = gridToPixely(ngridy);
-        var interpolatex = posx + n_simpartial*(nposx - posx);
-        var interpolatey = posy + n_simpartial*(nposy - posy);
-        if(gridx >= 1 && gridx <= 9){
-            ctx.drawImage(img,interpolatex-15,interpolatey-15);
-            if(Number.isNaN(ngridx))
-                ctx.drawImage(img,posx-15,posy-15);
-        }
-        if(vis_LOS == true){
-            var radius = AAcftVisToHorizon[whichPackage];
-            var drawradius = radius * pxpergrid / kmpergrid;
-            var color = "gray";
-            ctx.strokeStyle = color;
-            ctx.beginPath();
-            ctx.arc(interpolatex, interpolatey, radius, 0, 2* Math.PI);
-            ctx.stroke();
-            ctx.closePath();
-            if(vis_Dist){
-                DrawDistWithBackground(xcenter + drawradius, ycenter, drawradius, ctx, color);
-            }
-        }
-        if(myActiveWaypointInPlay > 0 && b_crossover){
-            //is airplane on a valid leg of a fplan?
-            if(StepMaskCheckNext[n_simstep]){
-                //is next move still within 1 cell?
-                var griddiff = gridx - ngridx;
-                if (griddiff < 0) griddiff = -griddiff;
-                if(Number.isNaN(gridx)){
-                    ExitMessage = "Waypoint is not a number";
-                    HaltSimulation();
-                }
-                if (gridx < 1 || gridx > 9){
-                    ExitMessage = "Waypoint not in range of 1..9";
-                    HaltSimulation();
-                }
-                if (griddiff > 1 || ngridx < 1 || ngridx > 9 || Number.isNaN(ngridx)){
-                    ExitMessage = "Cannot perform next move. Must be 45-diagonal or straight ahead";
-                    if(Number.isNaN(ngridx)){
-                        ExitMessage = "Oops, end of flight plan";
-                    }
-                    HaltSimulation();
-                }
-                //is next move going to repeat a cell from the ingress?
-                if(bsouthbound){
-                    var mirrorindex = StepToM[n_simstep];
-                    var mirrorx = A9fplans[whichPackage][mirrorindex];
-                    if(mirrorx == gridx){
-                        ExitMessage = "A Strike Package cannot fly to the same point twice";
-                        HaltSimulation();
-                    }
-                }
-            }
-            //did airplane hit dud dirt?
-            for(var h = 0; h < NUMDUDS; h++){
-                if(ADUDX[h] == gridx && ADUDY[h] == gridy && ADUDH[h] >= AALT[whichPackage]){
-                    ExitMessage = "Terrain Blocking Flighpath";
-                    HaltSimulation();
-                }
-            }
-            //did airplane hit sam dirt?
-            for(var h = 0; h < NUMSITES; h++){
-                if(ASAMX[h] == gridx && ASAMY[h] == gridy && ASAMH[h] >= AALT[whichPackage]){
-                    ExitMessage = "Terrain Blocking Flighpath";
-                    HaltSimulation();
-                }
-            }
-            //is airplane ordered to destory a SAM that is close enough?
-            //and/or did airplane penetrate a WEZ?
-            var b_ok = true;
-            if(!b_cyberactive){
-                for(var h = 0; h < NUMSITES; h++){
-                    if(!samdisabled[h]){
-                        var detrad = A6SiteAcftDetRange[h][whichPackage];
-                        if(b_gradermode) detrad = K6SiteAcftDetRange[h][whichPackage]; //Keyed
-                        var jamrad = ASiteAcftBurnRange[h][whichPackage];
-                        if(b_gradermode) jamrad = KSiteAcftBurnRange[h][whichPackage]; //Keyed
-                        var rawrad = A8RADARTypeAcftRaw[ASAMTYPE[h]][whichPackage];
-                        if(b_gradermode) rawrad = K8RADARTypeAcftRaw[ASAMTYPE[h]][whichPackage]; //Keyed
-                        var radx = gridToKm(ASAMX[h]);
-                        var rady = gridToKm(ASAMY[h]);
-                        var jetx = gridToKm(gridx);
-                        var jety = gridToKm(gridy);
-                        var deltax, deltay, checkx, checky;
-                        var distance;
-                        var stillontargetlist = false;
-                        for(var t = 0; t < AHARMQTY[whichPackage]; t++){
-                            if(HARMTargetList[whichPackage][t] == h && HARMShotSlots[whichPackage][t] > 0){
-                                stillontargetlist = true;
-                            }
-                        }
-                        for(var cx = 0; cx < 3; cx++){
-                            checkx = jetx + (cx - 1)*pxpergrid/2;
-                            deltax = radx - checkx;
-                            for(var cy = 0; cy < 3; cy++){
-                                checky = jety + (cy - 1)*pxpergrid/2;
-                                deltay = rady - checky;
-                                distance = Math.sqrt(deltax*deltax + deltay*deltay);
-                                //can airplane jam this site?
-                                var lineofsight = A5SiteAcftLOS[h][whichPackage];
-                                if(b_gradermode) lineofsight = K5SiteAcftLOS[h][whichPackage];
-                                if(b_jamactive && !samdisabled[h] && distance < rawrad && distance <= lineofsight){
-                                    ctx.strokeStyle = "orange";
-                                    ctx.lineWidth = 7;
-                                    ctx.beginPath();
-                                    ctx.moveTo(gridToPixelx(ASAMX[h]),gridToPixely(ASAMY[h]));
-                                    ctx.lineTo(gridToPixelx(gridx),gridToPixely(gridy));
-                                    ctx.stroke();
-                                    ctx.closePath();
-                                }
-                                //can airplane hit site with harm on target list?
-                                if(!samdisabled[h] && stillontargetlist && distance <= rawrad && distance <= lineofsight){
-                                    samdisabled[h] = true;
-                                    console.log("Harm fired");
-                                    UpdateSitesAndCommLinksForDisabledSites();
-                                    ctx.strokeStyle = "red";
-                                    ctx.lineWidth = 3;
-                                    ctx.beginPath();
-                                    ctx.moveTo(gridToPixelx(ASAMX[h]),gridToPixely(ASAMY[h]));
-                                    ctx.lineTo(gridToPixelx(gridx),gridToPixely(gridy));
-                                    ctx.stroke();
-                                    ctx.closePath();
-                                }
-                                //can site hit airplane in non-jamming scenario
-                                if(!samdisabled[h] && distance <= detrad && !b_jamactive && b_ok == true){
-                                    b_ok = false;
-                                    ExitMessage = "Aircraft entered WEZ without ECM";
-                                    ctx.beginPath();
-                                    ctx.strokeStyle = "blue";
-                                    ctx.lineWidth = 3;
-                                    ctx.moveTo(gridToPixelx(ASAMX[h]),gridToPixely(ASAMY[h]));
-                                    ctx.lineTo(gridToPixelx(gridx),gridToPixely(gridy));
-                                    ctx.stroke();
-                                    ctx.closePath();
-                                    HaltSimulation();
-                                }
-                                //can site hit airplane in jamming scenario
-                                if(!samdisabled[h] && distance <= jamrad && b_jamactive && b_ok == true){
-                                    b_ok = false;
-                                    ExitMessage = "Jamming inneffective";
-                                    ctx.beginPath();
-                                    ctx.strokeStyle = "red";
-                                    ctx.lineWidth = 3;
-                                    ctx.moveTo(gridToPixelx(ASAMX[h]),gridToPixely(ASAMY[h]));
-                                    ctx.lineTo(gridToPixelx(gridx),gridToPixely(gridy));
-                                    ctx.stroke();
-                                    ctx.closePath();
-                                    HaltSimulation();
-                                }
-                            }
-                        }
-                        
-                    }
-                }
-            }
-        }
-    }
-}
-//************************************ (2) RADIO BUTTONS **********************************************************************
-//REMOVED FEATURE
-//************************************ (3) USER INTERFACE TAB, FLIGHT PLAN INTERACTION, TOGGLES **********************************
-//this does not change the "whichpackage" variable, it only changes which tab is highlighted on the left tabs
-function SetTabToPackage(){
-    var TabName, tablinks, i;
-    switch(whichPackage){
-        case 0: TabName = 'TabConv';break;
-        case 1: TabName = 'TabMix';break;
-        case 2: TabName = 'TabStealth';break;
-        default: break;
-    }
-    tablinks = document.getElementsByClassName("tablinks");
-    for(i = 0; i < tablinks.length; i++){
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    document.getElementById(TabName).className += " active";
-}
-function openTab(evt, whichTab){
-    var i, tablinks;
-    var rememberpackage = whichPackage;
-    switch(whichTab){
-        case 'TabConv':     whichPackage = 0; break;
-        case 'TabMix':      whichPackage = 1; break;
-        case 'TabStealth':  whichPackage = 2; break;
-        default:            whichPackage = 0; break;
-    }
-    tablinks = document.getElementsByClassName("tablinks");
-    for(i = 0; i < tablinks.length; i++){
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    document.getElementById(whichTab).className += " active";
-    //in response to a button click, update the canvas.
-    if(rememberpackage != whichPackage){
-        if(b_simulating){
-            HaltSimulation();
-        }
-        b_showresults = false;
-        UpdateCanvas();
-    }
-}
-function SetViewTabsToDefault(){
-    return; //for now, don't do defaults
-    TurnDist(true);
-    TurnLOS(false);
-    TurnLinks(true);
-    TurnRadar(true);
-    TurnJam(true);
-    TurnFPlan(true);
-}
-function toggleLOS(){
-    TurnLOS(!vis_LOS);
-    if(!b_simulating)
-        UpdateCanvas();
-}
-function toggleDist(){
-    TurnDist(!vis_Dist);
-    if(!b_simulating)
-        UpdateCanvas();
-}
-function toggleRadar(){
-    TurnRadar(!vis_Radar);
-    if(!b_simulating)
-        UpdateCanvas();
-}
-function toggleJam(){
-    TurnJam(!vis_Jam);
-    if(!b_simulating)
-        UpdateCanvas();
-}
-function toggleFPlan(){
-    TurnFPlan(!vis_fplan);
-    if(!b_simulating)
-        UpdateCanvas();
-}
-function toggleLinks(){
-    TurnLinks(!vis_Links);
-    if(!b_simulating)
-        UpdateCanvas();
-}
-function TurnLOS(setting){
-    vis_LOS = setting;
-    if(vis_LOS == true){
-        document.getElementById("MaxLOS").className += " active";
-    }
-    else{ //in case the active gets duplicated, remove both with two calls to remove
-        document.getElementById("MaxLOS").className = document.getElementById("MaxLOS").className.replace(" active","");
-        document.getElementById("MaxLOS").className = document.getElementById("MaxLOS").className.replace(" active","");
-    }
-}
-function TurnDist(setting){
-    vis_Dist = setting;
-    if(vis_Dist == true){
-        document.getElementById("Distances").className += " active";
-    }
-    else{
-        document.getElementById("Distances").className = document.getElementById("Distances").className.replace(" active","");
-        document.getElementById("Distances").className = document.getElementById("Distances").className.replace(" active","");
-    }
-}
-function TurnRadar(setting){
-    vis_Radar = setting;
-    if(vis_Radar == true){
-        document.getElementById("MaxRadar").className += " active";
-    }
-    else{
-        document.getElementById("MaxRadar").className = document.getElementById("MaxRadar").className.replace(" active","");
-        document.getElementById("MaxRadar").className = document.getElementById("MaxRadar").className.replace(" active","");
-
-    }
-}
-function TurnJam(setting){
-    vis_Jam = setting;
-    if(vis_Jam == true){
-        document.getElementById("MinJam").className += " active";
-    }
-    else{
-        document.getElementById("MinJam").className = document.getElementById("MinJam").className.replace(" active","");
-        document.getElementById("MinJam").className = document.getElementById("MinJam").className.replace(" active","");
-
-    }
-}
-function TurnLinks(setting){
-    vis_Links = setting;
-    if(vis_Links == true){
-        document.getElementById("VisLinks").className += " active";
-    }
-    else{
-        document.getElementById("VisLinks").className = document.getElementById("VisLinks").className.replace(" active","");
-        document.getElementById("VisLinks").className = document.getElementById("VisLinks").className.replace(" active","");
-
-    }
-}
-function TurnFPlan(setting){
-    vis_fplan = setting;
-    if(vis_fplan == true){
-        document.getElementById("TogFPlan").className += " active";
-    }
-    else{
-        document.getElementById("TogFPlan").className = document.getElementById("TogFPlan").className.replace(" active","");
-        document.getElementById("TogFPlan").className = document.getElementById("TogFPlan").className.replace(" active","");
-
-    }
+    var friiskms = friis_r_max/1000;
+    var friistext = friiskms.toPrecision(4)+"km";
+    ctx.fillText("Friis Propagation Range is "+friistext, pix_tx_x, pix_mid_y-140);
+    //Tx and Rx at locations
+    ctx.fillText("Tx",pix_tx_x-50,pix_tx_y-5);
+    ctx.fillText("Rx",pix_rx_x+10,pix_tx_y-5);
+    //replicate friis range as a line
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(pix_tx_x,pix_tx_y-100);
+    ctx.lineTo(pix_tx_x+pix_friis_rmax,pix_rx_y-100);
+    ctx.stroke();
+    //draw comm range
+    var pix_comm_range = Math.min(pix_friis_rmax,pix_los_total);
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(pix_tx_x,pix_tx_y+100);
+    ctx.lineTo(pix_tx_x+pix_comm_range,pix_rx_y+100);
+    ctx.stroke();
+    var commtext = (comm_range_viable/1000).toPrecision(4)+"km";
+    ctx.fillText("Communication occurs at up to "+commtext, pix_tx_x, pix_mid_y+140);
 }

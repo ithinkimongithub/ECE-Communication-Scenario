@@ -21,11 +21,9 @@
         <h1>ECE 315: Communication Scenario</h1>
         <p>This is an interactive page that will carry all entries forward through a single scenario.</p>
         <hr />
-        <p>The wavelength of a radio transmission can be computed using the speed of light \(c\) and the radio frequency \(f\):
-            \[\lambda={c\over f}={3 \times 10^8 m/s\over f}\]</p>
-            <p id="lambdaeqn">eqn</p>
+        <p>The wavelength of a radio transmission can be computed using the speed of light \(c\) and the radio frequency \(f\):</p>
         <a>Frequency: </a>
-        <input type="number" id="commfreqarg" min="1" max="999" value="300" onchange="ChangedInput()">
+        <input type="number" id="commfreqarg" min="1" max="999" value="300" step="any" onchange="ChangedInput()">
         <select id="commfreqexp" onchange="ChangedInput()">
             <option value="0">Hz</option>
             <option value="3">kHz</option>
@@ -33,24 +31,21 @@
             <option value="9">GHz</option>
             <option value="12">THz</option>
         </select>
+        <p id="lambdaeqn">eqn</p>
         <hr />
         <p>The gain \(G\) of a parabolic dish antenna of radius \(r\), efficiency \(\eta\), and wavelength \(\lambda\):
             \[G={(2\pi r)^2\over \lambda^2}\eta\]</p>
-        <p>The monopole antenna achieves an ideal gain \(G=3.24\) at it's ideal length, one-quarter wavelength:
-                \[L={\lambda \over 4}\] 
-        </p>
-        <p>The dipole antenna achieves an ideal gain \(G=1.64\) at it's ideal length, one-half wavelength:
-            \[L={\lambda \over 2}\] 
-        </p>
+        <p>The monopole antenna achieves an ideal gain \(G=3.24\) at it's ideal length, one-quarter wavelength: \(L={\lambda \over 4}\) </p>
+        <p>The dipole antenna achieves an ideal gain \(G=1.64\) at it's ideal length, one-half wavelength: \(L={\lambda \over 2}\)</p>
         <a>Transmitter:</a>
         <select id="transmittertype" onchange="ChangedInput()">
             <option value="1">Dipole</option>
             <option value="2">Monopole</option>
-            <option value="3" selected>Parabolic</option>
-            <option value="4">Unspecified</option>
+            <option value="3">Parabolic</option>
+            <option value="4"selected>Unspecified</option>
         </select><br>
         <a id="txlengthtext">Radius (not diameter): </a>
-        <input type="number" id="txantennalength" min="1" max="999" value="1" onchange="ChangedInput()">
+        <input type="number" id="txantennalength" min="1" max="999" value="1" step="any" onchange="ChangedInput()">
         <select id="txantennaexp" onchange="ChangedInput()">
             <option value="-3">mm</option>
             <option value="0" selected>m</option>
@@ -58,9 +53,9 @@
         </select>
         <br>
         <a id="txetatext">Reflective Efficiency (max 1.0): </a>
-        <input type="number" id="txdisheta" min="0" max="1" value="0.7" onchange="ChangedInput()">
+        <input type="number" id="txdisheta" min="0" max="1" value="0.7" step="0.01" onchange="ChangedInput()">
         <br>
-        <a>Gain:</a><input disabled type="number" id="txgain" value="1" onchange="ChangedInput()">
+        <a>Gain:</a><input disabled type="number" id="txgain" value="2" step="any" onchange="ChangedInput()">
         <br><br>
         <a>Receiver:</a>
         <select id="receivertype" onchange="ChangedInput()">
@@ -70,7 +65,7 @@
             <option value="4">Unspecified</option>
         </select><br>
         <a id="rxlengthtext">Radius (not diameter): </a>
-        <input type="number" id="rxantennalength" min="1" max="999" value="1" onchange="ChangedInput()">
+        <input type="number" id="rxantennalength" min="1" max="999" value="1" step="any" onchange="ChangedInput()">
         <select id="rxantennaexp" onchange="ChangedInput()">
             <option value="-3">mm</option>
             <option value="0" selected>m</option>
@@ -78,33 +73,20 @@
         </select>
         <br>
         <a id="rxetatext">Reflective Efficiency (max 1.0): </a>
-        <input type="number" id="rxdisheta" min="0" max="1" value="0.7" onchange="ChangedInput()">
+        <input type="number" id="rxdisheta" min="0" max="1" value="0.7" step="0.01" onchange="ChangedInput()">
         <br>
-        <a>Gain:</a><input disabled type="number" id="rxgain" value="1" onchange="ChangedInput()">
-        <hr />
-        <p>For a given height \(h\) in feet, the radio-distance to the horizon \(R_{LOS}\) is computed in miles: \(R_{LOS}=\sqrt{2h}\)</p>
-        <a>Transmitter height above ground: </a>
-        <input type="number" id="txheight" value="14000" min="0" max="500000" value="1000" onchange="ChangedInput()">
-        <a>ft. Distance to horizon is: </a><a id="txrlosmi">0</a><a> miles, </a><a id="txrloskm">0</a><a> km.</a>
-        <br>
-        <a>Receiver height above ground: </a>
-        <input type="number" id="rxheight" value="1500" min="0" max="500000" value="1000" onchange="ChangedInput()">
-        <a>ft. Distance to horizon is: </a><a id="rxrlosmi">0</a><a> miles, </a><a id="rxrloskm">0</a><a> km.</a>
-        <br>
-        <a>Together, radio line-of-sight is possible up to a distance of </a>
-        <a id="rlosmi">0</a><a> miles, </a><a id="rloskm">0</a><a> km.</a>
+        <a>Gain:</a><input disabled type="number" id="rxgain" value="1" step="any" onchange="ChangedInput()">
         <hr />
         <p>The Friis equation for propagation computes power received \(P_R\) based upon power transmitted \(P_T\),
-            transmitter gain \(G_T\), receiver gain \(G_R\), wavelength \(\lambda\), and range \(R\).
-            \[P_R=P_T G_T G_R {\lambda^2 \over (4 \pi R)^2} \]</p>
+            transmitter gain \(G_T\), receiver gain \(G_R\), wavelength \(\lambda\), and range \(R\).</p>
         <p>Range, \(R\) =
-        <input type="number" id="friisrange" value="100" min ="0" max="99999" onchange="ChangedInput()">
+        <input type="number" id="friisrange" value="100" min ="0" max="99999" step="any" onchange="ChangedInput()">
         <select id="friisrangeexp" onchange="ChangedInput()">
             <option value="0">m</option>
             <option value="3" selected>km</option>
         </select></p>
         <p>Transmitter Power, \(P_T\) =
-            <input type="number" id="powertransmitted" value="100" min ="0" max="99999" onchange="ChangedInput()">
+            <input type="number" id="powertransmitted" value="100" min ="0" max="99999" step="any" onchange="ChangedInput()">
             <select id="powertransmittedexp" onchange="ChangedInput()">
                 <option value="-3">mW</option>
                 <option value="0" selected>W</option>
@@ -113,46 +95,123 @@
             </select></p>
             <p id="friiseqn">eqn</p>
         <hr />
-        <p>Often, it is necessary to solve for a maximum range \(R_{Max}\) based upon a minimum receive power \(P_{Rmin}\) using the following:
-           \[R_{Max}={\lambda \over 4 \pi}\sqrt{{P_T \over P_{Rmin}}G_T G_R}\]</p>
+        <p>Often, it is necessary to solve for a maximum range \(R_{Max}\) (which we'll name \(R_{Friis}\)) based upon a minimum receive power \(P_{Rmin}\).</p>
            <a>Minimum Receive Power, \(P_{Rmin}\) =</a>
-           <input type="number" id="prminvalue" value="1" min ="0" max="99999" onchange="ChangedInput()">
+           <input type="number" id="prminvalue" value="4" min ="0" max="99999" step="any" onchange="ChangedInput()">
            <select id="prminexp" onchange="ChangedInput()">
             <option value="-18">aW</option>
-            <option value="-15" selected>fW</option>
+            <option value="-15">fW</option>
             <option value="-12">pW</option>
-            <option value="-9">nW</option>
+            <option value="-9" selected>nW</option>
             <option value="-6">&#181;W</option>
             <option value="-3">mW</option>
             <option value="0" >W</option>
-            <option value="3">kW</option>
-            <option value="6">MW</option>
         </select></p>
            <p id="rmaxeqn">eqn</p>
         <hr />
-        <a>Communication is possible at distances within both limitations: \(R_{Max}\) and total \(R_{LOS}\),</a>
+        <p>For a given height \(h\) in feet, the radio-distance to the horizon \(R_{LOS}\) is computed in miles: \(R_{LOS}=\sqrt{2h}\). But when both Tx and Rx are elevated: \(R_{LOS}=\sqrt{2h_1}+\sqrt{2h_2}\)</p>
+        <a>Transmitter height above ground: </a>
+        <input type="number" id="txheight" value="5000" min="0" max="500000" value="1000" step="any" onchange="ChangedInput()">
+        <a>ft. Distance to horizon is: </a><a id="txrlosmi">0</a><a> miles, </a><a id="txrloskm">0</a><a> km.</a>
         <br>
-        <a>meaning that the lower value represents the maximum communication distance: </a>
+        <a>Receiver height above ground: </a>
+        <input type="number" id="rxheight" value="3000" min="0" max="500000" value="1000" step="any" onchange="ChangedInput()">
+        <a>ft. Distance to horizon is: </a><a id="rxrlosmi">0</a><a> miles, </a><a id="rxrloskm">0</a><a> km.</a>
+        <br><br>
+        <a>Whenever a comparison is made, convert \(R_{LOS}\) to kilometers:</a>
+        <p id="rloseqn">eqn</p>
         <hr />
-        <p>Modify the display using the selectors at left:</p>
-        <div class="VertTabs">
-            <div>Flight Plans:</div>
-            <button id="TabConv"    class="tablinks active" onclick="openTab(event, 'TabConv')">Conventional</button>
-            <button id="TabMix"     class="tablinks"        onclick="openTab(event, 'TabMix')">Mixed</button>
-            <button id="TabStealth" class="tablinks"        onclick="openTab(event, 'TabStealth')">Stealth</button>
-            <div>Display Options:</div>
-            <button id="Distances"  class="toggler"         onclick="toggleDist()">Distances</button>
-            <button id="MaxLOS"     class="toggler"         onclick="toggleLOS()">Max R_LOS</button>
-            <button id="VisLinks"   class="toggler"         onclick="toggleLinks()">Comm Links</button>
-            <button id="MaxRadar"   class="toggler"         onclick="toggleRadar()">Max Detection</button>
-            <button id="MinJam"     class="toggler"         onclick="toggleJam()">Burn-Through</button>
-            <button id="TogFPlan"   class="toggler"         onclick="toggleFPlan()">Flight Plan</button>
-        </div>
+        <a>Communication is possible at distances within both limitations: \(R_{Friis}\) and \(R_{LOS}\), meaning that the lower value represents the maximum communication distance: </a>
+        <p id="rcommeqn">eqn</p>
+        <hr />
+        <a>This is a visual representation of the scenario. Use the buttons to exaggerate the heights and Earth's curvature to more easily view the solution. These entries duplicate earlier entries on the page.</a><br>
+        <a>Earth: </a><button onclick="ChangeEarth(1)">Rounder</button><button onclick="ChangeEarth(-1)">Flatter</button><br>
+        <a>Heights: </a><button onclick="ChangeHeights(1)">Taller</button><button onclick="ChangeHeights(-1)">Shorter</button><br>
+        <a>Gain Pattern: </a><button onclick="ChangeGainArc(1)">Tighter</button><button onclick="ChangeGainArc(-1)">Wider</button><br>
+        
+        <!--This is the duplicated section for the lower half of html which will update values above as well-->
+        
+        <a>Frequency: </a><input type="number" id="lowerfreq" min="1" max="999" value="300" step="any" onchange="ChangeLowerInput()">
+        <select id="lowerfreqexp" onchange="ChangeLowerInput()">
+            <option value="0">Hz</option>
+            <option value="3">kHz</option>
+            <option value="6" selected>MHz</option>
+            <option value="9">GHz</option>
+            <option value="12">THz</option>
+        </select>
+        <br>
+        <a>Transmitter:</a>
+        <select id="lowertxtype" onchange="ChangeLowerInput()">
+            <option value="1">Dipole</option>
+            <option value="2">Monopole</option>
+            <option value="3" selected>Parabolic</option>
+            <option value="4">Unspecified</option>
+        </select><br>
+        <a id="lowertxtext">Radius (not diameter): </a>
+        <input type="number" id="lowertxlength" min="1" max="999" value="1" step="any" onchange="ChangeLowerInput()">
+        <select id="lowertxexp" onchange="ChangeLowerInput()">
+            <option value="-3">mm</option>
+            <option value="0" selected>m</option>
+            <option value="3">km</option>
+        </select>
+        <br>
+        <a id="lowertxetatext">Reflective Efficiency (max 1.0): </a>
+        <input type="number" id="lowertxeta" min="0" max="1" value="0.7" step="0.01" onchange="ChangeLowerInput()">
+        <br>
+        <a>Gain:</a><input disabled type="number" id="lowertxgain" value="1" step="any" onchange="ChangeLowerInput()">
+        <br>
+        <a>Receiver:</a>
+        <select id="lowerrxtype" onchange="ChangeLowerInput()">
+            <option value="1">Dipole</option>
+            <option value="2">Monopole</option>
+            <option value="3" selected>Parabolic</option>
+            <option value="4">Unspecified</option>
+        </select><br>
+        <a id="lowerrxtext">Radius (not diameter): </a>
+        <input type="number" id="lowerrxlength" min="1" max="999" value="1" step="any" onchange="ChangeLowerInput()">
+        <select id="lowerrxexp" onchange="ChangeLowerInput()">
+            <option value="-3">mm</option>
+            <option value="0" selected>m</option>
+            <option value="3">km</option>
+        </select>
+        <br>
+        <a id="lowerrxetatext">Reflective Efficiency (max 1.0): </a>
+        <input type="number" id="lowerrxeta" min="0" max="1" value="0.7" step="0.01" onchange="ChangeLowerInput()">
+        <br>
+        <a>Gain:</a><input disabled type="number" id="lowerrxgain" value="1" step="any" onchange="ChangeLowerInput()">
+        <br>
+        <a>Transmitter Power, \(P_T\) =
+            <input type="number" id="lowerpowertrans" value="100" min ="0" max="99999" step="any" onchange="ChangeLowerInput()">
+            <select id="lowerpowertransexp" onchange="ChangeLowerInput()">
+                <option value="-3">mW</option>
+                <option value="0" selected>W</option>
+                <option value="3">kW</option>
+                <option value="6">MW</option>
+            </select></a>
+        <a>Minimum Receive Power, \(P_{Rmin}\) =</a>
+            <input type="number" id="lowerprmin" value="4" min ="0" max="99999" step="any" onchange="ChangeLowerInput()">
+            <select id="lowerprminexp" onchange="ChangeLowerInput()">
+             <option value="-18">aW</option>
+             <option value="-15">fW</option>
+             <option value="-12">pW</option>
+             <option value="-9" selected>nW</option>
+             <option value="-6">&#181;W</option>
+             <option value="-3">mW</option>
+             <option value="0" >W</option>
+         </select></a>
+         <br>
+         <a>Transmitter height above ground: </a>
+        <input type="number" id="lowertxheight" value="5000" min="0" max="500000" value="1000" step="100" onchange="ChangeLowerInput()">
+        <a>Receiver height above ground: </a>
+        <input type="number" id="lowerrxheight" value="3000" min="0" max="500000" value="1000" step="100" onchange="ChangeLowerInput()">
+        <a>Graphics will be skewed when both heights are \(0ft\).</a>
+        <br>
+
         <div class="CanvasPlacement">
-            <canvas class="flight-canvas" id="TheCanvas" width="730" height="700" style="border:1px solid black"></canvas>
+            <canvas class="flight-canvas" id="TheCanvas" width="1200" height="600" style="border:1px solid black"></canvas>
         </div>
         <hr />
-        Equation styling courtesy <a href="https://www.mathjax.org">MathJax</a>
+        Equation styling from <a href="https://www.mathjax.org">MathJax</a>
         <div style="font-size:10px;">
             Author: Thomas Kubler
         <a style="font-size:10px;" href="mailto:thomas.kubler@gmail.com">thomas.kubler@gmail.com</a>
