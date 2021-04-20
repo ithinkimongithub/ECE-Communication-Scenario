@@ -51,9 +51,121 @@ const maxgain = Math.pow(10,12);
 const minnorm = 1;
 const maxnorm = 999;
 const mindist = 1;
-const maxdist = 999999999;
+const maxdist = Math.pow(10,12);
+const minRCS = Math.pow(10,-12);
+const maxRCS = Math.pow(10, 12);
 var multiplier; //for remembering scale :(
-//******************************************* INITIALIZATION FUNCTION ****************************************** */
+//******************************************* CHANGE FUNCTION ****************************************************/
+function GrabNumber(argumenthtml,exponenthtml,includeexponent,minvalue,maxvalue){
+    EnforceNumericalHTML(argumenthtml,minvalue,maxvalue);
+    var answer = parseFloat(document.getElementById(argumenthtml).value);
+    if(includeexponent == true){
+        answer *= Math.pow(10,parseFloat(document.getElementById(exponenthtml).value));
+    }
+    return answer;
+}
+function ChangedRadar(){
+    EnforceNumericalHTML("radarpt",minnorm,maxnorm);
+    var pt = document.getElementById("radarpt").value * Math.pow(10,document.getElementById("radarptexp").value);
+    EnforceNumericalHTML("radargain",mingain,maxgain);
+    var gr = parseFloat(document.getElementById("radargain").value);
+    var gsquaredtext = gr.toString()+"^2";
+    EnforceNumericalHTML("radarrcs",minRCS,maxRCS);
+    var rcs = parseFloat(document.getElementById("radarrcs").value);
+    EnforceNumericalHTML("radarfreq",minnorm,maxnorm);
+    var freq = document.getElementById("radarfreq").value * Math.pow(10,document.getElementById("radarfreqexp").value);
+    EnforceNumericalHTML("radarrange",mindist,maxdist);
+    var range = document.getElementById("radarrange").value * Math.pow(10,document.getElementById("radarrangeexp").value);
+    var lambda = SOL/freq;
+    var pr = pt*gr*gr*rcs*lambda*lambda/(FOURPICUBE*range*range*range*range);
+    var radarexpression = "P_R=P_T G^2 RCS \\frac{\\lambda^2}{(4\\pi)^3 R^4}="+MakeTripleNotation(pt,"W")+"\\times "+
+                            gsquaredtext+"\\times "+MakeTripleNotation(rcs,"m^2 ")+ "\\frac{("+MakeTripleNotation(lambda,"m")+")^2}{(4\\pi)^3("+
+                            MakeTripleNotation(range,"m")+")^4}="+MakeTripleNotation(pr,"W")+MakeEngNotation(pr,"W",true,false);
+    NewMathAtItem(radarexpression,"radarpreqn");
+    EnforceNumericalHTML("radarprmin",minnorm,maxnorm);
+    var prmin = parseFloat(document.getElementById("radarprmin").value) * Math.pow(10,document.getElementById("radarprminexp").value);
+    var radarrmax = Math.sqrt(Math.sqrt(pt/prmin*gr*gr*rcs*lambda*lambda/FOURPICUBE));
+    var radarrmaxexpression = "R_{Radar}=R_{Max}=\\sqrt[4]{\\frac{P_T}{P_R}G^2 RCS \\frac{\\lambda^2}{(4\\pi)^3}}=\\sqrt[4]{\\frac{"+
+                                MakeTripleNotation(pt,"W")+"}{"+MakeTripleNotation(pr,"W")+"}"+gsquaredtext+"\\times "+MakeTripleNotation(rcs,"m^2 ")+
+                                "\\frac{("+MakeTripleNotation(lambda,"m")+")^2}{(4\\pi)^3}}="+MakeTripleNotation(radarrmax,"m")+MakeEngNotation(radarrmax,"m",true,false);
+    NewMathAtItem(radarrmaxexpression,"radarrmaxeqn");
+    EnforceNumericalHTML("radarPRF",minnorm,maxnorm);
+    var prf = parseFloat(document.getElementById("radarPRF").value)*Math.pow(10,document.getElementById("radarPRFexp").value);
+    var pri = 1/prf;
+    var rumax = 0.5*SOL*pri;
+    var rumaxexpression = "R_U=\\frac{c}{2\\times PRF}=\\frac{3\\times 10^8 m/s}{2 \\times"+MakeTripleNotation(prf,"Hz")+"}="+MakeTripleNotation(rumax,"m")+MakeEngNotation(rumax,"m",true,false);
+    NewMathAtItem(rumaxexpression,"radarrueqn");
+    EnforceNumericalHTML("radarpw",minnorm,maxnorm);
+    var pw = parseFloat(document.getElementById("radarpw").value)*Math.pow(10,document.getElementById("radarpwexp").value);
+    var deltar = 0.4*SOL*pw;
+    var deltarexpression = "\\Delta R=\\frac{c \\tau}{2}=\\frac{3\\times 10^8 m/s\\times"+MakeTripleNotation(pw,"s")+"}{2}="+MakeTripleNotation(deltar,"m")+MakeEngNotation(deltar,"m",true,false);
+    NewMathAtItem(deltarexpression,"radarresolutioneqn");
+    var grwr = GrabNumber("rwrgain","null",false,mingain,maxgain);
+    var rwrprmin = GrabNumber("rwrprmin","rwrprminexp",true,minnorm,maxnorm);
+    var rwrrange = lambda/(FOURPI)*Math.sqrt(pt/rwrprmin*grwr*gr);
+    var rwrrangeexpression = "R_{RWR}=R_{Max}=\\frac{\\lambda}{4\\pi}\\sqrt{\\frac{P_T}{P_R}G_T G_R}=\\frac{"+MakeTripleNotation(lambda,"m")+"}{4\\pi}\\sqrt{\\frac{"+MakeTripleNotation(pt,"W")+"}{"+
+                                MakeTripleNotation(rwrprmin,"W")+"}"+gr.toString()+"\\times "+grwr.toString()+"}="+MakeTripleNotation(rwrrange,"m")+MakeEngNotation(rwrrange,"m",true,false);
+    NewMathAtItem(rwrrangeexpression,"radarrwreqn");
+    var rheight = GrabNumber("radarheight","null",false,minvertical,maxvertical);
+    var theight = GrabNumber("targetheight","null",false,minvertical,maxvertical);
+    var rlos = 1610*(Math.sqrt(2*rheight)+Math.sqrt(2*theight));
+    var lospart1 = Math.sqrt(rheight*2);
+    var lospart2 = Math.sqrt(theight*2);
+    var rloseqn = "R_{LOS}=\\sqrt{2 h_1}+\\sqrt{2 h_2}=\\sqrt{2\\times "+rheight.toString()+"}+\\sqrt{2\\times "+theight.toString()+"}=("+lospart1.toPrecision(4)+"mi+"+lospart2.toPrecision(4)+"mi)"+
+                "\\times 1.61\\frac{km}{mi}="+MakeEngNotation(rlos,"m",false,true);
+    NewMathAtItem(rloseqn,"radarloseqn");
+    //now conclude with a message about the winner: 
+    //\[ Max\begin{cases} Min(R_{LOS},R_{RWR}) \\ Min(R_{LOS},R_{Radar}) \end{cases}  \]
+    //var minmaxmsg = " Max\\begin{cases} Min(R_{LOS},R_{RWR}) \\\\ Min(R_{LOS},R_{Radar}) \\end{cases}  ";
+
+    var bestradar = Math.min(rlos,radarrmax);
+    var bestrwr = Math.min(rlos,rwrrange);
+    var bestoverall = Math.max(bestradar,bestrwr);
+
+    var minmaxmsg = "Max\\begin{cases} Radar= & Min("+MakeEngNotation(rlos,"m")+","+MakeEngNotation(radarrmax,"m")+") \\\\ RWR= & Min("+
+                     MakeEngNotation(rlos,"m")+","+MakeEngNotation(rwrrange,"m")+")\\end{cases}\\Rightarrow "+
+                     "Max\\begin{cases} Radar= & "+MakeEngNotation(bestradar,"m")+"\\\\"+
+                                       "RWR=   & "+MakeEngNotation(bestrwr,"m")+"\\end{cases}\\Rightarrow "+
+                     MakeEngNotation(bestoverall,"m");
+    NewMathAtItem(minmaxmsg,"minmaxmessage");
+
+    var finalmsg ="<u>The following conclusions are true for this particular RADAR and Target: </u><br>";
+    var b_loslimitsradar = false;
+    if(rlos < radarrmax) b_loslimitsradar = true;
+    var b_loslimitsrwr = false;
+    if(rlos < rwrrange) b_loslimitsrwr = true;
+    var b_tied = false;
+    if(b_loslimitsradar == true && b_loslimitsrwr == true) b_tied = true;
+    var b_ambiguous = false;
+    if(rumax < bestradar) b_ambiguous = true;
+    var b_radarwins = false;
+    if(b_tied == false && bestradar > bestrwr) b_radarwins = true;
+
+    //Tired of coming up with a dynamic paragraph? Me too.
+    finalmsg += "<b>R<sub>RADAR</sub> = "+MakeEngNotation(radarrmax,"m",false,true)+"</b> ";
+    if(b_loslimitsradar) finalmsg += "is limited by ";
+    else finalmsg += "is not limited by ";
+    finalmsg += "<b>R<sub>LOS</sub>="+MakeEngNotation(rlos,"m")+"</b>, so the RADAR can detect these targets out to a distance of <b>R<sub>Radar-Detection</sub>="+MakeEngNotation(bestradar,"m",false,true)+".</b><br>";
+    if(b_ambiguous) finalmsg += "However targets beyond its Maximum Unambiguous Range <b>R<sub>U</sub>="+MakeEngNotation(rumax,"m",false,true)+"</b> will be ambiguously shown at incorrect ranges.<br>";
+    else finalmsg += "Its range does not extend beyond its Maximum Unabmiguous Range <b>R<sub>U</sub>="+MakeEngNotation(rumax,"m",false,true)+"</b>, so all detectable targets will be shown at the correct range.<br>";
+    finalmsg += "The Target's RWR Range <b>R<sub>RWR</sub>="+MakeEngNotation(rwrrange,"m",false,true)+"</b> ";
+    if(b_loslimitsrwr) finalmsg += "is limited by ";
+    else finalmsg += "is not limited by ";
+    finalmsg += "<b>R<sub>LOS</sub>="+MakeEngNotation(rlos,"m",false,true)+"</b>, so the RWR can detect this kind of RADAR out to a distance of <b>R<sub>RWR-Detection</sub>="+MakeEngNotation(bestrwr,"m",false,true)+".</b><br>";
+    if(b_tied) finalmsg += "Since both systems are limited by LOS there is a <b>TIE</b>";
+    else{
+        if(bestradar == bestrwr) finalmsg += "Coincidentally, both systems have equal detection ranges and there is a <b>TIE</b>";
+        else if(bestradar > bestrwr){
+            if(b_ambiguous) finalmsg += "Despite the presence of ambiguous returns, the <b>RADAR</b> system will detect the aircraft first.";
+            else finalmsg += "The <b>RADAR</b> system will detect the aircraft first, and it will do so unambiguously";
+        }
+        else{
+            finalmsg += "The <b>RWR</b> will detect the RADAR first.";
+        }
+    }
+    document.getElementById("winnermessage").innerHTML = finalmsg;
+    //"RADAR detections occurs at up to <b>"+MakeEngNotation(bestradar,"m")+"</b>. The clear-sky 
+}
 function NewMathAtItem(mathexpression, htmlitem){
     var input = mathexpression;
     var output = document.getElementById(htmlitem);
