@@ -627,6 +627,8 @@ function UpdateCanvas(){
     var canvas_width = thecanvas.width;
     var canvas_height = thecanvas.height;
     ctx.clearRect(0,0,canvas_width,canvas_height);
+    ctx.fillStyle = "white";
+    ctx.fillRect(0,0,canvas_width,canvas_height);
 
     var pix_mid_x = canvas_width / 2;
     var pix_mid_y = canvas_height / 2;
