@@ -55,6 +55,31 @@ const maxdist = Math.pow(10,12);
 const minRCS = Math.pow(10,-12);
 const maxRCS = Math.pow(10, 12);
 var multiplier; //for remembering scale :(
+//******************************************* TABS ***************************************************************/
+function InitPage () {
+    ChangedInput(); //Need to initially populate equations
+    ChangedRadar(); //Need to initially populate equations
+    console.log("initpage");
+    document.getElementById("defaultOpen").click();
+}
+function openBigTab(whichtoshow,whatelement){
+    var i, tabcontent, tablinks, currentid;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for(i = 0; i < tabcontent.length; i++){
+        currentid = tabcontent[i].id;
+        if(currentid == whichtoshow){
+            tabcontent[i].style.display = "block";
+        }
+        else{
+            tabcontent[i].style.display = "none";
+        }
+    }
+    tablinks = document.getElementsByClassName("tablink");
+    for(i = 0; i < tablinks.length; i++){
+        tablinks[i].style.backgroundColor = "";
+    }
+    whatelement.style.backgroundColor = '#33F';
+}
 //******************************************* CHANGE FUNCTION ****************************************************/
 function GrabNumber(argumenthtml,exponenthtml,includeexponent,minvalue,maxvalue){
     EnforceNumericalHTML(argumenthtml,minvalue,maxvalue);
@@ -193,10 +218,6 @@ function NewMathAtItem(mathexpression, htmlitem){
       //
       //button.disabled = display.disabled = false;
     });
-}
-function InitPage () {
-    console.log("loading page");
-    ChangedInput(); //pulls in freq value from default HTML
 }
 //generic, enforce numerical entries
 function EnforceNumericalHTML(entryitem, min, max){

@@ -5,21 +5,40 @@
     <meta charset="utf-8" />
     
     <script defer src="script.js"></script>
-    <title>ECE Communication Scenario</title>
+    <title>ECE Communication/RADAR Scenarios</title>
 
-    <!--<link href="styles.css" rel="stylesheet"> -->
+    <!--<link href="styles.css" rel="stylesheet"> If the CSS goes overboard, the MathJax breaks-->
 
     <!-- MathJax for equations means the local styles has to be removed. Apache 2.0 license -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script type="text/javascript" id="MathJax-script" async
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
     </script>
+    <style>
+        .tablink {
+            background-color: #447;
+            color: white;
+            float: left;
+            border: solid;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            font-size: 17px;
+            width: 20%;
+        }
+        .tablink:hover {
+            background-color: #33F;
+        }
+    </style>
 </head>
 <body onload="InitPage()">
-    
-    <div class="container">
-        <h1>ECE 315: Communication Scenario</h1>
-        <p>This is an interactive page that will carry all entries forward through a single scenario. Go <a href="radarpage.html">here</a> for RADAR.</p>
+    <h1>ECE 315: Radio Communications and RADAR</h1>
+    <button class="tablink" onclick="openBigTab('commequations',this)" id="defaultOpen">Communications</button>
+    <button class="tablink" onclick="openBigTab('commpicture',this)">Comm Picture</button>
+    <button class="tablink" onclick="openBigTab('commjamming',this)">Comm Jamming</button>
+    <button class="tablink" onclick="openBigTab('radarequations',this)">RADAR</button>
+    <button class="tablink" onclick="openBigTab('radarjamming',this)">RADAR Jamming</button>
+    <div class="tabcontent" id="commequations">
         <hr />
         <p>The wavelength of a radio transmission can be computed using the speed of light \(c\) and the radio frequency \(f\):</p>
         <a>Frequency: </a>
@@ -123,13 +142,17 @@
         <hr />
         <a>Communication is possible at distances within both limitations: \(R_{Friis}\) and \(R_{LOS}\), meaning that the lower value represents the maximum communication distance: </a>
         <p id="rcommeqn">eqn</p>
+        </div>
+
+        <!--COMM PICTURE TAB-->
+        
+        <div class="tabcontent" id="commpicture">
         <hr />
         <a>This is a visual representation of the scenario. Use the buttons to exaggerate the heights and Earth's curvature to more easily view the solution. These entries duplicate earlier entries on the page.</a><br>
         <a>Earth: </a><button onclick="ChangeEarth(1)">Rounder</button><button onclick="ChangeEarth(-1)">Flatter</button><br>
         <a>Heights: </a><button onclick="ChangeHeights(1)">Taller</button><button onclick="ChangeHeights(-1)">Shorter</button><br>
         <a>Gain Pattern: </a><button onclick="ChangeGainArc(1)">Tighter</button><button onclick="ChangeGainArc(-1)">Wider</button><br>
         
-        <!--This is the duplicated section for the lower half of html which will update values above as well-->
         
         <a>Frequency: </a><input type="number" id="lowerfreq" min="1" max="999" value="300" step="any" onchange="ChangeLowerInput()">
         <select id="lowerfreqexp" onchange="ChangeLowerInput()">
@@ -210,12 +233,130 @@
         <div class="CanvasPlacement">
             <canvas class="flight-canvas" id="TheCanvas" width="1200" height="600" style="border:1px solid black"></canvas>
         </div>
-        <hr />
-        Equation styling from <a href="https://www.mathjax.org">MathJax</a>
-        <div style="font-size:10px;">
-            Author: Thomas Kubler
-        <a style="font-size:10px;" href="mailto:thomas.kubler@gmail.com">thomas.kubler@gmail.com</a>
-        <a style="font-size:10px;" href="mailto:thomas.kubler@usafa.edu">thomas.kubler@usafa.edu</a>
     </div>
+
+    <!--COMM JAMMING TAB-->
+
+    <div id="commjamming" class="tabcontent">
+        <hr />
+        COMING SOON!
+    </div>
+    <!--RADAR EQUATIONS TAB-->
+
+    <div class="tabcontent" id="radarequations">
+        <hr />
+        <a>RADAR propagation is a 2-way path, which combines two Friis (1-way) computations that arrives at power received
+             \(P_R\) based on power transmitted \(P_T\), transmitter/receiver gain \(G\), target \(RCS\), wavelength \(\lambda\), and range \(R\).</a><br>
+        <a>Transmitter Power, \(P_T\) =
+        <input type="number" id="radarpt" value="80" onchange="ChangedRadar()" min="1" max="999">
+        <select id="radarptexp" onchange="ChangedRadar()">
+            <option value="-3">mW</option>
+            <option value="0">W</option>
+            <option value="3" selected>kW</option>
+            <option value="6">MW</option>
+        </select></a><br>
+        <a>Gain: \(G\) = <input type="number" id="radargain" value="9002" onchange="ChangedRadar()" min="1" max="999999"></a><br>
+        <a>Radar Cross Section: \(RCS\) = <input type="number" id="radarrcs" value="25" onchange="ChangedRadar()" min="1" max="999"></a>\(m^2\)
+         (sometimes \(RCS\) is written with the symbol \(\sigma\))<br>
+        <a>Frequency, \(f\) = <input type="number" id="radarfreq" value="3.5" onchange="ChangedRadar()" min="1" max="999">
+        <select id="radarfreqexp" onchange="ChangedRadar()">
+            <option value="0">Hz</option>
+            <option value="3">kHz</option>
+            <option value="6">MHz</option>
+            <option value="9" selected>GHz</option>
+            <option value="12">THz</option>
+        </select></a><br>
+        <a>Range, \(R\) = <input type="number" id="radarrange" value="100" onchange="ChangedRadar()" min="1" max="999">
+        <select id="radarrangeexp" onchange="ChangedRadar()">
+            <option value="0">m</option>
+            <option value="3" selected>km</option>
+        </select></a><br>
+        <p id="radarpreqn">eqn</p>
+        <a>To solve for a maximum RADAR range \(R_{Max}\) (which we'll name \(R_{Radar}\)) based upon a minimum receive power \(P_{Rmin}\).</a><br>
+        <a>Minimum Receive Power, \(P_{Rmin}\) =</a>
+           <input type="number" id="radarprmin" value="1"  onchange="ChangedRadar()" min="1" max="999">
+           <select id="radarprminexp" onchange="ChangedRadar()">
+            <option value="-18">aW</option>
+            <option value="-15">fW</option>
+            <option value="-12" selected>pW</option>
+            <option value="-9">nW</option>
+            <option value="-6">&#181;W</option>
+            <option value="-3">mW</option>
+            <option value="0" >W</option>
+        </select></p>
+        <p id="radarrmaxeqn">eqn</p>
+        <a>Another important parameter of a basic RADAR system is the Pulse Repetition Frequency \(PRF\) which quantifies how often pulses are transmitted.
+            The reciprocal of the \(PRF\) is the Pulse Reptition Interval \(PRI\). During the \(PRI\), the RADAR system is running
+            a timer that associates returns with a distance according to the 2-way Range equation \(R=\frac{c t}{2}\). At the end of the \(PRI\) a
+            new pulse is sent out and the timer is reset to \(0\). Very distant targets will thus cause returns to occur in a later \(PRI\) window and 
+            lead to an "ambiguous" range reading. The maximum "unambiguous" range, \(R_{U}\) is the range reading when the round-trip travel time 
+            to a target and back is equal to the \(PRI\).
+        </a><br>
+        <a>Pulse Repetition Frequency, \(PRF\) = <input type="number" id="radarPRF" value="1" onchange="ChangedRadar()" min="1" max="999">
+        <select id="radarPRFexp" onchange="ChangedRadar()">
+            <option value="0">Hz</option>
+            <option value="3" selected>kHz</option>
+            <option value="6">MHz</option>
+            <option value="9">GHz</option>
+            <option value="12">THz</option>
+        </select></a><br>
+        <p id="radarrueqn">eqn</p>
+        <a>The critical separation distance that quantifies a RADAR's ability to resolve two targets, Range Resolution, \(\Delta R\) depends upon the duration of the RADAR pulse,
+            \(\tau\).</a><br>
+        <a>Pulse Width, \(\tau\) = <input type="number" id="radarpw" value="100" onchange="ChangedRadar()" min="1" max="999">
+        <select id="radarpwexp" onchange="ChangedRadar()">
+            <option value="-12">ps</option>
+            <option value="-9" selected>ns</option>
+            <option value="-6">&#181;s</option>
+            <option value="-3">ms</option>
+            <option value="0">s</option>
+        </select></a><br>
+        <p id="radarresolutioneqn">eqn</p>
+        <a>A RADAR Warning Receiver (RWR) is a radio receiver tuned to the RADAR's frequency, and can normally detect the RADAR system if enough power reaches the RWR antenna.
+            This is a one-way path that is evaluated with the Friis equation, where \(G_T\) is the RADAR antenna gain, and \(G_R\) is the RWR receiver gain.
+            Normally, we'll compute a maximum range for the sake of comparison with other range-based metrics. To avoid confusion with other values of \(R_{Max}\),
+            we'll name this value \(R_{RWR}\).
+        </a><br>
+        <a>RWR Gain, \(G_R\) = </a><input type="number" id="rwrgain" value="1.64" onchange="ChangedRadar()" min="1" max="999999"><br>
+        <a>RWR Minimum Receive Power, \(P_{Rmin}\) = </a>
+        <input type="number" id="rwrprmin" value="1" onchange="ChangedRadar()" min="1" max="999">
+            <select id="rwrprminexp" onchange="ChangedRadar()">
+            <option value="-18">aW</option>
+            <option value="-15">fW</option>
+            <option value="-12">pW</option>
+            <option value="-9">nW</option>
+            <option value="-6" selected>&#181;W</option>
+            <option value="-3">mW</option>
+            <option value="0" >W</option>
+        </select>
+        <p id="radarrwreqn">eqn</p>
+        <a>Both propagations, 2-way and 1-way, are limited to line-of-sight, so we'll compute \(R_{LOS}\).</a><br>
+        <a>RADAR height above ground: </a>
+        <input type="number" id="radarheight" value="10" min="0" max="50000" value="1000" onchange="ChangedRadar()">
+        <a> ft. Target height above ground: </a>
+        <input type="number" id="targetheight" value="10000" min="0" max="50000" value="1000" onchange="ChangedRadar()"><a> ft.</a>
+        <p id="radarloseqn">eqn</p>
+        <a>In determining "Who sees whom first?" the choice is somewhat involved. You may draw a picture or use the following concept: that we are finding
+            which propagation case is less-limited. Separately, we'll check the final RADAR detection range against R<sub>U</sub> for ambiguous returns.
+        </a>
+        <p>\[ Max\begin{cases} Radar= & Min(R_{LOS},R_{Radar}) \\ RWR= & Min(R_{LOS},R_{RWR}) \end{cases}  \]</p>
+        <p id="minmaxmessage">Min-Max</p>
+        <a id="winnermessage">**</a>
+        </a>
+    </div>
+
+    <!--RADAR EQUATIONS TAB-->
+
+    <div id="radarjamming" class="tabcontent">
+        <hr />
+        COMING SOON!
+    </div>
+
+    <hr />
+    Equation styling from <a href="https://www.mathjax.org">MathJax</a>. The page must remain very bland to not upset the styling.
+    <div style="font-size:10px;">
+        Author: Thomas Kubler
+    <a href="mailto:thomas.kubler@gmail.com">thomas.kubler@gmail.com</a>
+    <a href="mailto:thomas.kubler@usafa.edu">thomas.kubler@usafa.edu</a>
 </body>
 </html>
