@@ -200,6 +200,13 @@ function ChangedRadar(){
                             MakeEngNotation(rangetotarget,"m",true,false);
     NewMathAtItem(radardistanceexp,"radartimedistanceeqn");
 
+    var onewaytraveltime = GrabNumber("radiotime","radiotimeexp",true,minnorm,maxnorm);
+    var onewayrange = SOL*onewaytraveltime;
+    var radiotimedistanceeqn = "R=c t=3\\times10^8m/s\\times"+MakeTripleNotation(onewaytraveltime,"s")
+                            +"="+MakeTripleNotation(onewayrange,"m")+
+                            MakeEngNotation(onewayrange,"m",true,false);
+    NewMathAtItem(radiotimedistanceeqn,"radiotimedistanceeqn");
+
     var fzero = GrabNumber("radarFzero","radarFzeroexp",true,minnorm,maxnorm);
     var velocity = GrabNumber("radarvelocity","",false,-SOL,SOL);
     var dopplerangle = GrabNumber("radarangle","",false,minangle,maxangle);

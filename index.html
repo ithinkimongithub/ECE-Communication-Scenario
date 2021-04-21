@@ -38,8 +38,8 @@
     <h1>ECE 315: Radio Communications and RADAR</h1>
     <button class="tablink" onclick="openBigTab('commequations',this)">Communications</button>
     <button class="tablink" onclick="openBigTab('commpicture',this)">Comm Picture</button>
-    <button class="tablink" onclick="openBigTab('radarequations',this)">RADAR</button>
-    <button class="tablink" onclick="openBigTab('radardoppler',this)" id="defaultOpen">Doppler</button>
+    <button class="tablink" onclick="openBigTab('radarequations',this)" id="defaultOpen" >RADAR</button>
+    <button class="tablink" onclick="openBigTab('radardoppler',this)" >Doppler</button>
     <button class="tablink" onclick="openBigTab('radarjamming',this)">Jamming</button>
     <div class="tabcontent" id="commequations">
         <hr />
@@ -348,7 +348,7 @@
         <hr />
         <p>The computations for \(R_{MAX}\) only help to determine whether a RADAR could detect a target.
             Actual range-finding is done by using the pulse's round-trip travel time and its known speed, \(c\).</p>
-            <a>Time to return: \(t\) = <input type="number" id="radartime" value="2" onchange="ChangedRadar()" min="1" max="999">
+            <a>2-way travel time: \(t\) = <input type="number" id="radartime" value="1" onchange="ChangedRadar()" min="1" max="999">
                 <select id="radartimeexp" onchange="ChangedRadar()">
                     <option value="-12">ps</option>
                     <option value="-9">ns</option>
@@ -357,6 +357,16 @@
                     <option value="0">s</option>
                 </select></a><br>
         <p id="radartimedistanceeqn">eqn</p>
+        <p>Of course, if you are measuring the time from just transmitter to receiver, do not divide by 2.</p>
+            <a>1-way travel time: \(t\) = <input type="number" id="radiotime" value="1" onchange="ChangedRadar()" min="1" max="999">
+                <select id="radiotimeexp" onchange="ChangedRadar()">
+                    <option value="-12">ps</option>
+                    <option value="-9">ns</option>
+                    <option value="-6">&#181;s</option>
+                    <option value="-3" selected>ms</option>
+                    <option value="0">s</option>
+                </select></a><br>
+        <p id="radiotimedistanceeqn">eqn</p>
         <p>The Doppler effect is used to find a target's velocity. When the target is moving towards a RADAR, velocity
             is positive and the return frequency increases. When the target is moving away from a RADAR, return frequency will
             decrease. The sign can be entered as a negative velocity, by placing a '-' in place of \(\pm\)), or using a value of \(\theta\)
