@@ -122,7 +122,7 @@ function ChangedRadar(){
     NewMathAtItem(rumaxexpression,"radarrueqn");
     EnforceNumericalHTML("radarpw",minnorm,maxnorm);
     var pw = parseFloat(document.getElementById("radarpw").value)*Math.pow(10,document.getElementById("radarpwexp").value);
-    var deltar = 0.4*SOL*pw;
+    var deltar = 0.5*SOL*pw;
     var deltarexpression = "\\Delta R=\\frac{c \\tau}{2}=\\frac{3\\times 10^8 m/s\\times"+MakeTripleNotation(pw,"s")+"}{2}="+MakeTripleNotation(deltar,"m")+MakeEngNotation(deltar,"m",true,false);
     NewMathAtItem(deltarexpression,"radarresolutioneqn");
     var grwr = GrabNumber("rwrgain","null",false,mingain,maxgain);
