@@ -54,6 +54,8 @@ const mindist = 1;
 const maxdist = Math.pow(10,12);
 const minRCS = Math.pow(10,-12);
 const maxRCS = Math.pow(10, 12);
+const minangle = -360;
+const maxangle = 360;
 var multiplier; //for remembering scale :(
 //******************************************* TABS ***************************************************************/
 function InitPage () {
@@ -190,6 +192,40 @@ function ChangedRadar(){
     }
     document.getElementById("winnermessage").innerHTML = finalmsg;
     //"RADAR detections occurs at up to <b>"+MakeEngNotation(bestradar,"m")+"</b>. The clear-sky 
+
+    var rttt = GrabNumber("radartime","radartimeexp",true,minnorm,maxnorm);
+    var rangetotarget = 0.5*SOL*rttt;
+    var radardistanceexp = "R=\\frac{c t}{2}=\\frac{3\\times10^8m/s\\times"+MakeTripleNotation(rttt,"s")
+                            +"}{2}="+MakeTripleNotation(rangetotarget,"m")+
+                            MakeEngNotation(rangetotarget,"m",true,false);
+    NewMathAtItem(radardistanceexp,"radartimedistanceeqn");
+
+    var fzero = GrabNumber("radarFzero","radarFzeroexp",true,minnorm,maxnorm);
+    var velocity = GrabNumber("radarvelocity","",false,-SOL,SOL);
+    var dopplerangle = GrabNumber("radarangle","",false,minangle,maxangle);
+    var angleinrads = dopplerangle*PI/180;
+    var tofrom = parseFloat(document.getElementById("radartowards").value);
+    var tofromtext = "+";
+    if(tofrom < 0) tofromtext = "-";
+    console.log(velocity);
+    console.log(Math.cos(angleinrads));
+    var freturn = fzero*(1+tofrom*2*velocity*Math.cos(angleinrads)/SOL);
+    var fshift = freturn - fzero;
+    var freturnexpression = "f_{R}=f_0[1\\pm\\frac{2v\\times cos(\\theta)}{c}]="+MakeTripleNotation(fzero,"Hz")+
+        "[1"+tofromtext+"\\frac{2\\times"+MakeTripleNotation(velocity,"m/s")+"\\times cos("+dopplerangle.toString()+
+        "^\\circ)}{3\\times10^8m/s}="+MakeTripleNotation(freturn,"Hz",true)+MakeEngNotation(freturn,"Hz",true,false,true);
+    NewMathAtItem(freturnexpression,"radarreturnfrequency");
+    console.log("frequency output");
+    var returnshift = "\\Delta f=f_R-f_0="+MakeTripleNotation(fshift,"Hz")+MakeEngNotation(fshift,"Hz",true,false);
+    NewMathAtItem(returnshift,"radarreturnshift");
+
+    var fshiftgiven = GrabNumber("radarShift","radarShiftexp",true,-maxnorm,maxnorm);
+    var compvelocity = SOL/2*fshiftgiven/(fzero*Math.cos(angleinrads));
+    var velocityexpression = "v=\\frac{c(f_R-f_0)}{2f_0cos(\\theta)}="+"\\frac{c\\times\\Delta f}{2f_0cos(\\theta)}="+
+                "\\frac{3\\times10^8m/s\\times"+MakeTripleNotation(fshiftgiven,"Hz")+
+                "}{2\\times"+MakeTripleNotation(fzero,"Hz")+"\\times cos("+dopplerangle.toString()+"^\\circ)}="+
+                MakeTripleNotation(compvelocity,"m/s");
+    NewMathAtItem(velocityexpression,"radarcomputevelocity");
 }
 function NewMathAtItem(mathexpression, htmlitem){
     var input = mathexpression;
@@ -443,33 +479,45 @@ function ChangedInput(){
     UpdateCanvas(); //go to the drawing function
 
 }
-function MakeTripleNotation(value,units=""){
-    var exp = Math.log(value) / Math.log(10);
+function MakeTripleNotation(value,units="",makedoppler=false){
+    if(value == 0) return "0"+units;
+    var putinnegativesign = "";
+    var absvalue = Math.abs(value);
+    if(value < 0){
+        putinnegativesign = "-"; 
+    }
+    console.log(absvalue,putinnegativesign);
+    var exp = Math.log(absvalue) / Math.log(10);
+    var precision = 4;
+    if(makedoppler == true) precision = exp + 1;
     var triplets = Math.round(exp/3.0-0.5);
     var t_exp = 3*triplets;
-    var argument = value / Math.pow(10,t_exp);
-    var argstring = argument.toPrecision(4);
+    var argument = absvalue / Math.pow(10,t_exp);
+    var argstring = argument.toPrecision(precision);
     argument = parseFloat(argstring);
     //then check if argument is 1000 due to some precision in the log and rounding
     if(argument >= 1000){
         t_exp += 3;
-        argument = value / Math.pow(10,t_exp);
-        argstring = argument.toPrecision(4);
+        argument = absvalue / Math.pow(10,t_exp);
+        argstring = argument.toPrecision(precision);
     }
     else if(argument < 1){
         t_exp -= 3;
-        argument = value / Math.pow(10,t_exp);
-        argstring = argument.toPrecision(4);
+        argument = absvalue / Math.pow(10,t_exp);
+        argstring = argument.toPrecision(precision);
     }
     if(t_exp == 0){
-        return argstring+units;
+        return putinnegativesign+argstring+units;
     }
     else{
-        return argstring+"\\times "+"10^{"+t_exp+"}"+units;
+        return putinnegativesign+argstring+"\\times "+"10^{"+t_exp+"}"+units;
     }
 }
-function MakeEngNotation(value, units, prependequals = false, forceoutput = false){
-    var exp = Math.log(value) / Math.log(10);
+function MakeEngNotation(value, units, prependequals = false, forceoutput = false, dopplerfreq = false){
+    var absvalue = Math.abs(value);
+    var sign = "";
+    if(value < 0) sign = "-";
+    var exp = Math.log(absvalue) / Math.log(10);
     var triplets = Math.round(exp/3.0-0.5);
     var t_exp = 3*triplets;
     var prefix = " ";
@@ -478,6 +526,7 @@ function MakeEngNotation(value, units, prependequals = false, forceoutput = fals
     if(prependequals){
         output = "=";
     }
+    output += sign;
     switch(t_exp){
         case -18:   prefix = "a";   break;
         case -15:   prefix = "f";   break;
@@ -503,7 +552,10 @@ function MakeEngNotation(value, units, prependequals = false, forceoutput = fals
     if(t_exp == 0 && forceoutput == false){
         return "";
     }
-    var argument = value / Math.pow(10,t_exp);
+    if(dopplerfreq == true){
+        precision = exp + 2;
+    }
+    var argument = absvalue / Math.pow(10,t_exp);
     output += argument.toPrecision(precision)+prefix+units;
     return output;
 }

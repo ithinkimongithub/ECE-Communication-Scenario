@@ -36,11 +36,11 @@
 </head>
 <body onload="InitPage()">
     <h1>ECE 315: Radio Communications and RADAR</h1>
-    <button class="tablink" onclick="openBigTab('commequations',this)" id="defaultOpen">Communications</button>
+    <button class="tablink" onclick="openBigTab('commequations',this)">Communications</button>
     <button class="tablink" onclick="openBigTab('commpicture',this)">Comm Picture</button>
-    <button class="tablink" onclick="openBigTab('commjamming',this)">Comm Jamming</button>
     <button class="tablink" onclick="openBigTab('radarequations',this)">RADAR</button>
-    <button class="tablink" onclick="openBigTab('radarjamming',this)">RADAR Jamming</button>
+    <button class="tablink" onclick="openBigTab('radardoppler',this)" id="defaultOpen">Doppler</button>
+    <button class="tablink" onclick="openBigTab('radarjamming',this)">Jamming</button>
     <div class="tabcontent" id="commequations">
         <hr />
         <p>The wavelength of a radio transmission can be computed using the speed of light \(c\) and the radio frequency \(f\):</p>
@@ -238,12 +238,6 @@
         </div>
     </div>
 
-    <!--COMM JAMMING TAB-->
-
-    <div id="commjamming" class="tabcontent">
-        <hr />
-        COMING SOON!
-    </div>
     <!--RADAR EQUATIONS TAB-->
 
     <div class="tabcontent" id="radarequations">
@@ -348,7 +342,57 @@
         </a>
     </div>
 
-    <!--RADAR EQUATIONS TAB-->
+    <!--DOPPLER TAB-->
+
+    <div id="radardoppler" class="tabcontent">
+        <hr />
+        <p>The computations for \(R_{MAX}\) only help to determine whether a RADAR could detect a target.
+            Actual range-finding is done by using the pulse's round-trip travel time and its known speed, \(c\).</p>
+            <a>Time to return: \(t\) = <input type="number" id="radartime" value="2" onchange="ChangedRadar()" min="1" max="999">
+                <select id="radartimeexp" onchange="ChangedRadar()">
+                    <option value="-12">ps</option>
+                    <option value="-9">ns</option>
+                    <option value="-6">&#181;s</option>
+                    <option value="-3" selected>ms</option>
+                    <option value="0">s</option>
+                </select></a><br>
+        <p id="radartimedistanceeqn">eqn</p>
+        <p>The Doppler effect is used to find a target's velocity. When the target is moving towards a RADAR, velocity
+            is positive and the return frequency increases. When the target is moving away from a RADAR, return frequency will
+            decrease. The sign can be entered as a negative velocity, by placing a '-' in place of \(\pm\)), or using a value of \(\theta\)
+            that makes \(cos(\theta)\) negative. Choose one method.
+        </p>
+        <a>Frequency (original), \(f_0\) = <input type="number" id="radarFzero" value="2" onchange="ChangedRadar()" min="1" max="999">
+            <select id="radarFzeroexp" onchange="ChangedRadar()">
+                <option value="0">Hz</option>
+                <option value="3">kHz</option>
+                <option value="6">MHz</option>
+                <option value="9" selected>GHz</option>
+                <option value="12">THz</option>
+            </select></a><br>
+        <a>velocity, \(v\) = <input type="number" id="radarvelocity" value="100" onchange="ChangedRadar()" min="1" max="999999"></a>\(m/s\)<br>
+        <a>angle, \(\theta\) = <input type="number" id="radarangle" value="0" onchange="ChangedRadar()" min="0" max="360"></a>&#176;<br>
+        <a>To/From \(\pm\)</a><select id="radartowards" onchange="ChangedRadar()">
+        <option value="1" selected>Towards '+'</option>
+        <option value="-1">Away   '-'</option></select>
+        <p id="radarreturnfrequency">eqn</p>
+        <p id="radarreturnshift">eqn</p>
+        <a>In practice, a RADAR system will be used to compute velocity from the Doppler shift:</a><br>
+        <a>Doppler Shift, \(\Delta f\) = <input type="number" id="radarShift" value="1.333" onchange="ChangedRadar()" min="1" max="999">
+            <select id="radarShiftexp" onchange="ChangedRadar()">
+                <option value="-3">mHz</option>
+                <option value="0">Hz</option>
+                <option value="3" selected>kHz</option>
+                <option value="6">MHz</option>
+                <option value="9">GHz</option>
+                <option value="12">THz</option>
+            </select></a><br>
+        <p id="radarcomputevelocity">eqntocomputevelocity</p>
+        <p>These Doppler equations disregard relativity and will be increasingly inaccurate at very high velocities.
+        </p>
+    </div>
+
+    <!--JAMMING TAB-->
 
     <div id="radarjamming" class="tabcontent">
         <hr />
