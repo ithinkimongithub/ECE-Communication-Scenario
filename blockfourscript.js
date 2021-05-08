@@ -110,10 +110,12 @@ function ChangedRadar(){
                             MakeTripleNotation(range,"m")+")^4}="+MakeTripleNotation(pr,"W")+MakeEngNotation(pr,"W",true,false);
     NewMathAtItem(radarexpression,"radarpreqn");
     EnforceNumericalHTML("radarprmin",minnorm,maxnorm);
-    var prmin = parseFloat(document.getElementById("radarprmin").value) * Math.pow(10,document.getElementById("radarprminexp").value);
-    var radarrmax = Math.sqrt(Math.sqrt(pt/prmin*gr*gr*rcs*lambda*lambda/FOURPICUBE));
+    var prminradar = parseFloat(document.getElementById("radarprmin").value) * Math.pow(10,document.getElementById("radarprminexp").value);
+    console.log(prminradar);
+    var radarrmax = Math.sqrt(Math.sqrt(pt/prminradar*gr*gr*rcs*lambda*lambda/FOURPICUBE));
+    console.log(radarrmax);
     var radarrmaxexpression = "R_{Radar}=R_{Max}=\\sqrt[4]{\\frac{P_T}{P_R}G^2 RCS \\frac{\\lambda^2}{(4\\pi)^3}}=\\sqrt[4]{\\frac{"+
-                                MakeTripleNotation(pt,"W")+"}{"+MakeTripleNotation(pr,"W")+"}"+gsquaredtext+"\\times "+MakeTripleNotation(rcs,"m^2 ")+
+                                MakeTripleNotation(pt,"W")+"}{"+MakeTripleNotation(prminradar,"W")+"}"+gsquaredtext+"\\times "+MakeTripleNotation(rcs,"m^2 ")+
                                 "\\frac{("+MakeTripleNotation(lambda,"m")+")^2}{(4\\pi)^3}}="+MakeTripleNotation(radarrmax,"m")+MakeEngNotation(radarrmax,"m",true,false);
     NewMathAtItem(radarrmaxexpression,"radarrmaxeqn");
     EnforceNumericalHTML("radarPRF",minnorm,maxnorm);
@@ -493,7 +495,7 @@ function MakeTripleNotation(value,units="",makedoppler=false){
     if(value < 0){
         putinnegativesign = "-"; 
     }
-    console.log(absvalue,putinnegativesign);
+    //console.log(absvalue,putinnegativesign);
     var exp = Math.log(absvalue) / Math.log(10);
     var precision = 4;
     if(makedoppler == true) precision = exp + 1;
